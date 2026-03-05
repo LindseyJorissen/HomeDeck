@@ -1,4 +1,3 @@
-/* ── Toggle switch pseudo-element (cannot be expressed in Tailwind) ── */
 .toggle-slider::before {
   content: '';
   position: absolute;
@@ -11,27 +10,24 @@
   transition: transform var(--transition);
   box-shadow: 0 1px 3px rgba(0,0,0,0.2);
 }
-.toggle-switch input:checked + .toggle-slider {
+input:checked + .toggle-slider {
   background: var(--primary);
 }
-.toggle-switch input:checked + .toggle-slider::before {
+input:checked + .toggle-slider::before {
   transform: translateX(20px);
 }
-
-/* ── Toggle option active state (JS-toggled) ── */
+.card-sort-row[draggable]:active { cursor: grabbing; }
+.card-sort-row.drag-over {
+  background: var(--primary-light);
+  border-radius: var(--radius-xs);
+}
 .toggle-opt.active {
   background: var(--primary);
   color: #fff;
   border-color: var(--primary);
 }
-
-/* ── City dropdown open state (JS-toggled) ── */
 .city-results.open { display: block; }
-
-/* ── City result hover (requires var reference) ── */
 .city-result-item:hover { background: var(--primary-light); }
-
-/* ── Toast show state (JS-toggled) ── */
 .toast.show {
   opacity: 1;
   transform: translateX(-50%) translateY(0);

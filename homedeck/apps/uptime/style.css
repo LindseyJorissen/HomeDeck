@@ -1,3 +1,2 @@
-/* JS-toggled response time states */
 .response-time.slow { color: var(--warning); }
 .response-time.bad  { color: var(--error);   }

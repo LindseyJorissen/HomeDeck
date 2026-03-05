@@ -1,6 +1,3 @@
-/* Hide scrollbar on forecast strip */
 .forecast-scroll::-webkit-scrollbar { display: none; }
 .forecast-scroll { scrollbar-width: none; }
-
-/* "Now" highlight on current hour card */
 .forecast-hour.now { font-weight: 600; }

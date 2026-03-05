@@ -136,16 +136,32 @@ async function refreshHA() {
 
 
 function applyCardVisibility() {
-  const vis = JSON.parse(localStorage.getItem('homedeck_cards') || '{}');
-  const map = {
-    'card-weather': vis.weather !== false,
-    'card-uptime':  vis.uptime  !== false,
-    'card-server':  vis.server  !== false,
-    'card-ha':      vis.ha      !== false,
+  const stored       = JSON.parse(localStorage.getItem('homedeck_cards') || '{}');
+  const defaultOrder = ['weather', 'uptime', 'server', 'ha'];
+  const idMap = {
+    weather: 'card-weather',
+    uptime:  'card-uptime',
+    server:  'card-server',
+    ha:      'card-ha',
   };
-  for (const [id, show] of Object.entries(map)) {
-    const el = document.getElementById(id);
-    if (el) el.style.display = show ? '' : 'none';
+
+  const order = Array.isArray(stored.order) &&
+                stored.order.length === 4 &&
+                defaultOrder.every(id => stored.order.includes(id))
+    ? stored.order
+    : defaultOrder;
+
+  const grid = document.getElementById('card-grid');
+  if (grid) {
+    order.forEach(key => {
+      const el = document.getElementById(idMap[key]);
+      if (el) grid.appendChild(el);
+    });
+  }
+
+  for (const key of defaultOrder) {
+    const el = document.getElementById(idMap[key]);
+    if (el) el.style.display = stored[key] !== false ? '' : 'none';
   }
 }
 

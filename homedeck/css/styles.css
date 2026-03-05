@@ -42,7 +42,6 @@ html, body {
 
 button { font-family: var(--font); }
 
-/* ── Status dot (JS class-toggled) ── */
 .status-dot {
   width: 9px;
   height: 9px;
@@ -55,13 +54,11 @@ button { font-family: var(--font); }
 .status-dot.offline  { background: var(--error); }
 .status-dot.checking { background: var(--warning); animation: pulse 1.2s infinite; }
 
-/* ── Card color accents (JS classList-toggled) ── */
 .card--primary { border-color: var(--primary) !important; }
 .card--success { border-color: var(--success) !important; }
 .card--warning { border-color: var(--warning) !important; }
 .card--error   { border-color: var(--error)   !important; }
 
-/* ── Card stagger animations ── */
 .card { animation: cardIn 0.35s ease both; }
 .card:nth-child(1) { animation-delay: 0.04s; }
 .card:nth-child(2) { animation-delay: 0.08s; }
@@ -72,7 +69,6 @@ button { font-family: var(--font); }
 .card:nth-child(7) { animation-delay: 0.28s; }
 .card:nth-child(8) { animation-delay: 0.32s; }
 
-/* ── Badge variants (JS-generated HTML) ── */
 .badge {
   display: inline-flex;
   align-items: center;
@@ -87,7 +83,6 @@ button { font-family: var(--font); }
 .badge--down     { background: var(--error-light);   color: var(--error);   }
 .badge--checking { background: var(--warning-light); color: var(--warning); }
 
-/* ── Progress fill variants (JS class-assigned) ── */
 .progress-fill {
   height: 100%;
   border-radius: 4px;
@@ -98,7 +93,6 @@ button { font-family: var(--font); }
 .progress-fill--warning { background: var(--warning); }
 .progress-fill--error   { background: var(--error);   }
 
-/* ── Buttons (shared across all pages) ── */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -125,7 +119,6 @@ button { font-family: var(--font); }
 .btn--sm        { padding: 7px 14px; font-size: 0.85rem; }
 .btn--lg        { padding: 16px 32px; font-size: 1.05rem; }
 
-/* ── Input fields ── */
 .input, .textarea {
   width: 100%;
   padding: 12px 16px;
@@ -142,11 +135,9 @@ button { font-family: var(--font); }
 .input:focus, .textarea:focus { border-color: var(--primary); }
 .textarea { resize: vertical; min-height: 80px; }
 
-/* ── Utility animation classes ── */
 .fade-in  { animation: fadeIn 0.3s ease; }
 .slide-up { animation: slideUp 0.3s ease; }
 
-/* ── Keyframes ── */
 @keyframes pulse {
   0%, 100% { opacity: 1; }
   50%       { opacity: 0.35; }
@@ -164,7 +155,6 @@ button { font-family: var(--font); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* ── Scrollbar ── */
 ::-webkit-scrollbar              { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track        { background: transparent; }
 ::-webkit-scrollbar-thumb        { background: var(--border); border-radius: 3px; }

@@ -1,17 +1,10 @@
-/* ── HA banner color variants (JS-generated HTML uses these class names) ── */
 .ha-banner--ok  { background: var(--success-light); color: #1E6E3A; border: 1px solid #A8D5B5; }
 .ha-banner--err { background: var(--warning-light);  color: #7A5C00; border: 1px solid var(--warning); }
 .ha-banner--cfg { background: var(--primary-light);  color: #4B5563; border: 1px solid #D1D5DB; }
-
-/* ── Scene card state variants (JS classList-toggled) ── */
 .scene-card.loading { pointer-events: none; opacity: 0.7; }
 .scene-card.success { border-color: var(--success) !important; background: var(--success-light) !important; }
 .scene-card.error   { border-color: var(--error)   !important; background: var(--error-light)   !important; }
-
-/* ── Scene icon scale on hover ── */
 .scene-card:hover .scene-icon { transform: scale(1.1); }
-
-/* ── Feedback overlay opacity (JS state-toggled) ── */
 .scene-card.loading .scene-feedback,
 .scene-card.success .scene-feedback,
 .scene-card.error   .scene-feedback { opacity: 1; }

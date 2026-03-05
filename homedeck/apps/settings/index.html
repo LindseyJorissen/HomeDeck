@@ -52,7 +52,6 @@
 
     <div class="flex-1 overflow-y-auto" style="padding-bottom:0">
 
-      <!-- Weather -->
       <div class="bg-surface rounded-card mb-5 shadow-card border border-border overflow-hidden slide-up mx-6 mt-6" style="animation-delay:0.04s">
         <div class="px-5 py-4 border-b border-border text-[0.78rem] font-extrabold uppercase tracking-[0.8px] text-muted bg-raised flex items-center gap-2">
           <img src="../../assets/icons/weather.svg" width="20" height="20" alt="" /> Weather
@@ -99,7 +98,6 @@
         </div>
       </div>
 
-      <!-- Uptime Monitor -->
       <div class="bg-surface rounded-card mb-5 shadow-card border border-border overflow-hidden slide-up mx-6" style="animation-delay:0.08s">
         <div class="px-5 py-4 border-b border-border text-[0.78rem] font-extrabold uppercase tracking-[0.8px] text-muted bg-raised flex items-center gap-2">
           <img src="../../assets/icons/uptime.svg" width="20" height="20" alt="" /> Uptime Monitor
@@ -112,7 +110,6 @@
         </div>
       </div>
 
-      <!-- Home Assistant -->
       <div class="bg-surface rounded-card mb-5 shadow-card border border-border overflow-hidden slide-up mx-6" style="animation-delay:0.12s">
         <div class="px-5 py-4 border-b border-border text-[0.78rem] font-extrabold uppercase tracking-[0.8px] text-muted bg-raised flex items-center gap-2">
           <img src="../../assets/icons/home.svg" width="20" height="20" alt="" /> Home Assistant
@@ -147,43 +144,12 @@
         </div>
       </div>
 
-      <!-- Dashboard Cards -->
       <div class="bg-surface rounded-card mb-5 shadow-card border border-border overflow-hidden slide-up mx-6" style="animation-delay:0.16s">
-        <div class="px-5 py-4 border-b border-border text-[0.78rem] font-extrabold uppercase tracking-[0.8px] text-muted bg-raised">
-          Dashboard Cards
+        <div class="px-5 py-4 border-b border-border text-[0.78rem] font-extrabold uppercase tracking-[0.8px] text-muted bg-raised flex items-center justify-between">
+          <span>Dashboard Cards</span>
+          <span class="text-[0.72rem] font-medium normal-case tracking-normal opacity-60">drag to reorder</span>
         </div>
-
-        <div class="px-5 py-[14px] border-b border-border flex items-center gap-4">
-          <div class="text-[0.92rem] font-semibold text-text flex-shrink-0 min-w-[110px]">Weather</div>
-          <label class="relative inline-block w-11 h-6 flex-shrink-0">
-            <input type="checkbox" id="show-weather" class="opacity-0 w-0 h-0" />
-            <span class="toggle-slider absolute inset-0 bg-border rounded-full cursor-pointer transition-colors duration-[180ms]"></span>
-          </label>
-        </div>
-
-        <div class="px-5 py-[14px] border-b border-border flex items-center gap-4">
-          <div class="text-[0.92rem] font-semibold text-text flex-shrink-0 min-w-[110px]">Uptime Monitor</div>
-          <label class="relative inline-block w-11 h-6 flex-shrink-0">
-            <input type="checkbox" id="show-uptime" class="opacity-0 w-0 h-0" />
-            <span class="toggle-slider absolute inset-0 bg-border rounded-full cursor-pointer transition-colors duration-[180ms]"></span>
-          </label>
-        </div>
-
-        <div class="px-5 py-[14px] border-b border-border flex items-center gap-4">
-          <div class="text-[0.92rem] font-semibold text-text flex-shrink-0 min-w-[110px]">System</div>
-          <label class="relative inline-block w-11 h-6 flex-shrink-0">
-            <input type="checkbox" id="show-server" class="opacity-0 w-0 h-0" />
-            <span class="toggle-slider absolute inset-0 bg-border rounded-full cursor-pointer transition-colors duration-[180ms]"></span>
-          </label>
-        </div>
-
-        <div class="px-5 py-[14px] flex items-center gap-4">
-          <div class="text-[0.92rem] font-semibold text-text flex-shrink-0 min-w-[110px]">Home Assistant</div>
-          <label class="relative inline-block w-11 h-6 flex-shrink-0">
-            <input type="checkbox" id="show-ha" class="opacity-0 w-0 h-0" />
-            <span class="toggle-slider absolute inset-0 bg-border rounded-full cursor-pointer transition-colors duration-[180ms]"></span>
-          </label>
-        </div>
+        <div id="cards-sortable"></div>
       </div>
 
       <div style="height:16px"></div>
@@ -204,12 +170,111 @@
   <script src="../../js/utils.js"></script>
   <script>
 
-    let _cfg    = {};
-    let _lat    = null;
-    let _lon    = null;
+    let _cfg      = {};
+    let _lat      = null;
+    let _lon      = null;
     let _cityName = '';
     let _debounce = null;
 
+    const CARD_DEFS = [
+      { id: 'weather', label: 'Weather' },
+      { id: 'uptime',  label: 'Uptime Monitor' },
+      { id: 'server',  label: 'System' },
+      { id: 'ha',      label: 'Home Assistant' },
+    ];
+    const DEFAULT_ORDER = ['weather', 'uptime', 'server', 'ha'];
+    let _cardOrder   = [...DEFAULT_ORDER];
+    let _cardVisible = { weather: true, uptime: true, server: true, ha: true };
+    let _dragSrc     = null;
+
+    function loadCardSettings() {
+      const stored = JSON.parse(localStorage.getItem('homedeck_cards') || '{}');
+      _cardVisible = {
+        weather: stored.weather !== false,
+        uptime:  stored.uptime  !== false,
+        server:  stored.server  !== false,
+        ha:      stored.ha      !== false,
+      };
+      const storedOrder = stored.order;
+      _cardOrder = Array.isArray(storedOrder) &&
+                   storedOrder.length === 4 &&
+                   DEFAULT_ORDER.every(id => storedOrder.includes(id))
+        ? storedOrder
+        : [...DEFAULT_ORDER];
+      renderCardSettings();
+    }
+
+    function renderCardSettings() {
+      const container = document.getElementById('cards-sortable');
+      container.innerHTML = _cardOrder.map((id, i) => {
+        const def    = CARD_DEFS.find(d => d.id === id);
+        const isLast = i === _cardOrder.length - 1;
+        return `
+          <div class="card-sort-row flex items-center gap-4 px-5 py-[14px] transition-opacity duration-[180ms] ${isLast ? '' : 'border-b border-[var(--border)]'}"
+               draggable="true" data-card-id="${id}">
+            <div class="text-[1.3rem] text-muted flex-shrink-0 cursor-grab select-none leading-none" title="Drag to reorder">⠿</div>
+            <div class="flex-1 text-[0.92rem] font-semibold text-text">${def.label}</div>
+            <label class="relative inline-block w-11 h-6 flex-shrink-0 cursor-pointer">
+              <input type="checkbox" class="opacity-0 w-0 h-0" data-card-id="${id}" ${_cardVisible[id] ? 'checked' : ''} />
+              <span class="toggle-slider absolute inset-0 bg-border rounded-full transition-colors duration-[180ms]"></span>
+            </label>
+          </div>`;
+      }).join('');
+
+      container.querySelectorAll('.card-sort-row').forEach(row => {
+        row.addEventListener('dragstart', onDragStart);
+        row.addEventListener('dragover',  onDragOver);
+        row.addEventListener('dragleave', onDragLeave);
+        row.addEventListener('drop',      onDrop);
+        row.addEventListener('dragend',   onDragEnd);
+      });
+    }
+
+    function onDragStart(e) {
+      _dragSrc = this;
+      e.dataTransfer.effectAllowed = 'move';
+      setTimeout(() => this.style.opacity = '0.35', 0);
+    }
+    function onDragOver(e) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      if (this !== _dragSrc) this.classList.add('drag-over');
+    }
+    function onDragLeave() {
+      this.classList.remove('drag-over');
+    }
+    function onDrop(e) {
+      e.stopPropagation();
+      this.classList.remove('drag-over');
+      if (_dragSrc === this) return;
+      document.querySelectorAll('#cards-sortable input[data-card-id]').forEach(cb => {
+        _cardVisible[cb.dataset.cardId] = cb.checked;
+      });
+      const srcId  = _dragSrc.dataset.cardId;
+      const destId = this.dataset.cardId;
+      const si = _cardOrder.indexOf(srcId);
+      const di = _cardOrder.indexOf(destId);
+      _cardOrder.splice(si, 1);
+      _cardOrder.splice(di, 0, srcId);
+      renderCardSettings();
+    }
+    function onDragEnd() {
+      this.style.opacity = '1';
+      document.querySelectorAll('.card-sort-row').forEach(r => r.classList.remove('drag-over'));
+    }
+
+    function saveCardSettings() {
+      document.querySelectorAll('#cards-sortable input[data-card-id]').forEach(cb => {
+        _cardVisible[cb.dataset.cardId] = cb.checked;
+      });
+      localStorage.setItem('homedeck_cards', JSON.stringify({
+        order:   _cardOrder,
+        weather: _cardVisible.weather,
+        uptime:  _cardVisible.uptime,
+        server:  _cardVisible.server,
+        ha:      _cardVisible.ha,
+      }));
+    }
 
     async function init() {
       const data = await fetchAPI('/api/config');
@@ -235,25 +300,7 @@
       document.getElementById('ha-token').value = ha.token || '';
       renderScenes(ha.scenes || []);
 
-      loadCardVisibility();
-    }
-
-    function loadCardVisibility() {
-      const vis = JSON.parse(localStorage.getItem('homedeck_cards') || '{}');
-      document.getElementById('show-weather').checked = vis.weather !== false;
-      document.getElementById('show-uptime').checked  = vis.uptime  !== false;
-      document.getElementById('show-server').checked  = vis.server  !== false;
-      document.getElementById('show-ha').checked      = vis.ha      !== false;
-    }
-
-    function saveCardVisibility() {
-      const vis = {
-        weather: document.getElementById('show-weather').checked,
-        uptime:  document.getElementById('show-uptime').checked,
-        server:  document.getElementById('show-server').checked,
-        ha:      document.getElementById('show-ha').checked,
-      };
-      localStorage.setItem('homedeck_cards', JSON.stringify(vis));
+      loadCardSettings();
     }
 
     function onCityInput() {
@@ -402,7 +449,7 @@
     }
 
     async function save() {
-      saveCardVisibility();
+      saveCardSettings();
 
       const payload = {
         weather: {
