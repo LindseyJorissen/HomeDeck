@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <title>HomeDeck</title>
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body>
+    <div id="app">
+      <header class="topbar">
+        <div class="topbar-left">
+          <div class="topbar-clock" id="clock">--:--</div>
+          <div class="topbar-date" id="date">Loading…</div>
+        </div>
+
+        <div class="topbar-right">
+          <div class="status-pill">
+            <span class="status-dot checking" id="internet-dot"></span>
+            <span class="status-label">Internet</span>
+          </div>
+          <div class="status-pill">
+            <span class="status-dot checking" id="local-dot"></span>
+            <span class="status-label" id="local-label">Local</span>
+          </div>
+          <button
+            class="settings-btn"
+            onclick="window.location.href = 'apps/settings/index.html'"
+            title="Settings">
+            <img
+              src="assets/icons/settings.svg"
+              width="18"
+              height="18"
+              alt="" />
+          </button>
+        </div>
+      </header>
+
+      <main class="dashboard">
+        <div class="card-grid">
+          <div class="card" id="card-weather" onclick="openApp('weather')">
+            <div class="card-icon" id="weather-icon">
+              <img src="assets/icons/sun.svg" width="24" height="24" />
+            </div>
+            <div class="card-title">Weather</div>
+            <div class="card-value" id="weather-temp">--°</div>
+            <div class="card-sub" id="weather-cond">Loading…</div>
+          </div>
+
+          <div class="card" id="card-uptime" onclick="openApp('uptime')">
+            <div class="card-icon">
+              <img
+                src="assets/icons/uptime.svg"
+                width="32"
+                height="32"
+                alt="" />
+            </div>
+            <div class="card-title">Uptime Monitor</div>
+            <div class="card-value" id="uptime-value">-- / --</div>
+            <div class="card-sub" id="uptime-sub">Services Online</div>
+          </div>
+
+          <div class="card" id="card-server" onclick="openApp('server')">
+            <div class="card-icon">
+              <img
+                src="assets/icons/server.svg"
+                width="32"
+                height="32"
+                alt="" />
+            </div>
+            <div class="card-title">System</div>
+            <div class="card-value" id="server-cpu">--%</div>
+            <div class="card-sub" id="server-sub">CPU Usage</div>
+          </div>
+
+          <div class="card" id="card-ha" onclick="openApp('homeassistant')">
+            <div class="card-icon">
+              <img src="assets/icons/home.svg" width="32" height="32" alt="" />
+            </div>
+            <div class="card-title">Home Assistant</div>
+            <div class="card-value card-value--sm" id="ha-scenes-count">–</div>
+            <div class="card-sub" id="ha-sub">Favourite Scenes</div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <script src="js/utils.js"></script>
+    <script src="js/app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>Uptime Monitor — HomeDeck</title>
+  <link rel="stylesheet" href="../../css/styles.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app-page">
+
+    <header class="app-header">
+      <button class="back-btn" onclick="window.location.href='../../index.html'">←</button>
+      <span class="app-title"><img src="../../assets/icons/uptime.svg" width="20" height="20" alt="" /> Uptime Monitor</span>
+      <button class="btn btn--secondary btn--sm" style="margin-left:auto" onclick="refresh()" id="refresh-btn">
+        ↻ Refresh
+      </button>
+    </header>
+
+    <div class="app-content">
+
+      <div class="summary-row">
+        <div class="summary-card summary-card--up">
+          <div class="summary-number" id="count-up">–</div>
+          <div class="summary-label">Online</div>
+        </div>
+        <div class="summary-card summary-card--down">
+          <div class="summary-number" id="count-down">–</div>
+          <div class="summary-label">Offline</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-number" id="count-total">–</div>
+          <div class="summary-label">Total</div>
+        </div>
+      </div>
+
+      <div class="section-title">Services</div>
+      <div id="services-list">
+        <div class="empty-state">
+          <div class="empty-icon" style="animation:pulse 1s infinite"><img src="../../assets/icons/uptime.svg" width="48" height="48" alt="" /></div>
+          <div class="empty-title">Checking services…</div>
+        </div>
+      </div>
+
+      <div class="last-updated" id="last-updated"></div>
+
+    </div>
+  </div>
+
+  <script src="../../js/utils.js"></script>
+  <script>
+    async function refresh() {
+      const btn  = document.getElementById('refresh-btn');
+      const list = document.getElementById('services-list');
+
+      if (btn) btn.disabled = true;
+
+      list.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon" style="animation:pulse 1s infinite"><img src="../../assets/icons/uptime.svg" width="48" height="48" alt="" /></div>
+          <div class="empty-title">Checking services…</div>
+        </div>`;
+
+      const data = await fetchAPI('/api/uptime');
+
+      if (btn) btn.disabled = false;
+
+      if (!data) {
+        setError('services-list', 'Could not reach HomeDeck server', 'Make sure the backend is running on port 8000');
+        return;
+      }
+
+      const services = data.services || [];
+      const up   = services.filter(s => s.status === 'up').length;
+      const down = services.filter(s => s.status === 'down').length;
+
+      document.getElementById('count-up').textContent    = up;
+      document.getElementById('count-down').textContent  = down;
+      document.getElementById('count-total').textContent = services.length;
+
+      if (services.length === 0) {
+        list.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon"><img src="../../assets/icons/uptime.svg" width="48" height="48" alt="" /></div>
+            <div class="empty-title">No services configured</div>
+            <div class="empty-sub">Add entries to <code>backend/config.json</code></div>
+          </div>`;
+        return;
+      }
+
+      list.innerHTML = services.map((s, i) => {
+        const isUp      = s.status === 'up';
+        const icon      = isUp ? '<img src="../../assets/icons/check.svg" width="20" height="20" alt="up" />' : '<img src="../../assets/icons/warning.svg" width="20" height="20" alt="down" />';
+        const ms        = s.response_ms;
+        const msClass   = ms == null ? '' : ms > 1000 ? 'bad' : ms > 500 ? 'slow' : '';
+        const msText    = ms != null ? `${ms} ms` : '–';
+        const errText   = s.error ? ` (${s.error})` : '';
+        const checkedAt = s.checked_at ? new Date(s.checked_at).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'}) : '';
+
+        return `
+          <div class="service-row" style="animation-delay:${i * 0.05}s">
+            <div class="service-status-icon">${icon}</div>
+            <div class="service-info">
+              <div class="service-name">${s.name}</div>
+              <div class="service-url">${s.url}${errText}</div>
+            </div>
+            <div class="service-meta">
+              <div class="response-time ${msClass}">${msText}</div>
+              <div class="checked-time">${checkedAt}</div>
+            </div>
+            <span class="badge badge--${isUp ? 'up' : 'down'}">${isUp ? '● UP' : '● DOWN'}</span>
+          </div>`;
+      }).join('');
+
+      setLastUpdated('last-updated', new Date());
+    }
+
+    refresh();
+    setInterval(refresh, 60_000);
+  </script>
+</body>
+</html>

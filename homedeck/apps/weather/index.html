@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>Weather - HomeDeck</title>
+  <link rel="stylesheet" href="../../css/styles.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app-page">
+
+    <header class="app-header">
+      <button class="back-btn" onclick="window.location.href='../../index.html'">←</button>
+      <img src="../../assets/icons/weather.svg" width="24" height="24" /><span class="app-title"> Weather</span>
+      <button class="btn btn--secondary btn--sm" style="margin-left:auto" onclick="load()" id="refresh-btn">↻</button>
+    </header>
+
+    <div class="app-content">
+
+      <div class="weather-hero" id="hero">
+        <div class="hero-icon" id="w-icon"><img src="../../assets/icons/thermometer.svg" width="64" height="64" alt="" /></div>
+        <div class="hero-temp" id="w-temp">--°</div>
+        <div class="hero-cond" id="w-cond">Loading weather…</div>
+        <div class="hero-location" id="w-loc"></div>
+      </div>
+
+      <div class="detail-row">
+        <div class="detail-pill">
+          <div class="detail-icon"><img src="../../assets/icons/thermometer.svg" width="24" height="24" alt="" /></div>
+          <div class="detail-value" id="w-feels">--°</div>
+          <div class="detail-label">Feels Like</div>
+        </div>
+        <div class="detail-pill">
+          <div class="detail-icon"><img src="../../assets/icons/humidity.svg" width="24" height="24" alt="" /></div>
+          <div class="detail-value" id="w-hum">--%</div>
+          <div class="detail-label">Humidity</div>
+        </div>
+        <div class="detail-pill">
+          <div class="detail-icon"><img src="../../assets/icons/wind.svg" width="24" height="24" alt="" /></div>
+          <div class="detail-value" id="w-wind">--</div>
+          <div class="detail-label">Wind</div>
+        </div>
+      </div>
+
+      <div class="section-title">Hourly Forecast</div>
+      <div class="forecast-scroll" id="forecast">
+        <div style="color:var(--text-secondary);padding:20px 0">Loading…</div>
+      </div>
+
+      <div class="last-updated" id="last-updated"></div>
+
+    </div>
+  </div>
+
+  <script src="../../js/utils.js"></script>
+  <script>
+    async function load() {
+      const data = await fetchAPI('/api/weather');
+
+      if (!data || data.error) {
+        document.getElementById('w-cond').textContent = 'Weather unavailable';
+        document.getElementById('w-icon').innerHTML = '<img src="../../assets/icons/warning.svg" width="64" height="64" alt="" />';
+        return;
+      }
+
+      const unit = data.unit || '°C';
+
+      document.getElementById('w-icon').innerHTML  = `<img src="../../assets/icons/${data.icon}" width="64" height="64" alt="" />`;
+      document.getElementById('w-temp').textContent  = `${data.temperature}${unit}`;
+      document.getElementById('w-cond').textContent  = data.condition;
+      document.getElementById('w-loc').textContent   = data.location;
+      document.getElementById('w-feels').textContent = `${data.feels_like}${unit}`;
+      document.getElementById('w-hum').textContent   = `${data.humidity}%`;
+      document.getElementById('w-wind').textContent  = `${data.wind_speed} ${data.wind_unit || 'mph'}`;
+
+      const fc = document.getElementById('forecast');
+      if (!data.forecast || !data.forecast.length) {
+        fc.innerHTML = '<div style="color:var(--text-secondary);padding:20px 0">No forecast data</div>';
+        return;
+      }
+
+      const nowH = new Date().getHours();
+
+      fc.innerHTML = data.forecast.map((h, i) => {
+        const d     = new Date(h.time);
+        const hh    = d.getHours();
+        const label = hh === 0 ? '12am'
+                    : hh < 12  ? `${hh}am`
+                    : hh === 12? '12pm'
+                    : `${hh - 12}pm`;
+        const isNow = i === 0;
+
+        return `
+          <div class="forecast-hour ${isNow ? 'now' : ''}" style="animation-delay:${i*0.04}s">
+            <div class="f-time">${isNow ? 'Now' : label}</div>
+            <div class="f-icon"><img src="../../assets/icons/${h.icon}" width="24" height="24" alt="" /></div>
+            <div class="f-temp">${h.temp}${unit}</div>
+            ${h.precip_chance > 0 ? `<div class="f-precip"><img src="../../assets/icons/humidity.svg" width="12" height="12" alt="" /> ${h.precip_chance}%</div>` : ''}
+          </div>`;
+      }).join('');
+
+      setLastUpdated('last-updated', new Date());
+    }
+
+    load();
+    setInterval(load, 300_000);
+  </script>
+</body>
+</html>

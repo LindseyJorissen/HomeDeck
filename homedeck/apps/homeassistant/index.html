@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>Home Assistant - HomeDeck</title>
+  <link rel="stylesheet" href="../../css/styles.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app-page">
+
+    <header class="app-header">
+      <button class="back-btn" onclick="window.location.href='../../index.html'">←</button>
+      <span class="app-title"><img src="../../assets/icons/home.svg" width="20" height="20" alt="" /> Home Assistant</span>
+      <button class="btn btn--secondary btn--sm" style="margin-left:auto" onclick="load()" id="refresh-btn">↻</button>
+    </header>
+
+    <div class="app-content">
+      <div id="ha-banner"></div>
+      <div id="scenes-container"></div>
+    </div>
+
+  </div>
+
+  <script src="../../js/utils.js"></script>
+  <script>
+    async function load() {
+      const banner    = document.getElementById('ha-banner');
+      const container = document.getElementById('scenes-container');
+
+      banner.innerHTML    = '';
+      container.innerHTML = '';
+
+      const data = await fetchAPI('/api/ha/status');
+
+      if (!data || (!data.connected && data.error === 'Home Assistant not configured')) {
+        banner.innerHTML = `
+          <div class="ha-banner ha-banner--cfg">
+            <img src="../../assets/icons/settings.svg" width="16" height="16" alt="" /> Home Assistant not configured — tap <strong>Settings</strong> to add your HA URL and token.
+          </div>`;
+        container.innerHTML = `
+          <div class="setup-card">
+            <div style="font-size:3rem"><img src="../../assets/icons/home.svg" width="48" height="48" alt="" /></div>
+            <div class="setup-title">Connect Home Assistant</div>
+            <div class="setup-sub">
+              Enter your Home Assistant URL and a Long-Lived Access Token in Settings.<br>
+              Then add your favourite scenes to activate them from here.
+            </div>
+            <button class="btn btn--primary" onclick="window.location.href='../settings/index.html'">
+              Open Settings
+            </button>
+          </div>`;
+        return;
+      }
+
+      if (data.connected) {
+        banner.innerHTML = `<div class="ha-banner ha-banner--ok"><img src="../../assets/icons/check.svg" width="16" height="16" alt="" /> Connected to Home Assistant</div>`;
+      } else {
+        banner.innerHTML = `<div class="ha-banner ha-banner--err"><img src="../../assets/icons/warning.svg" width="16" height="16" alt="" /> Could not reach Home Assistant — ${data.error || 'check your URL and token'}</div>`;
+      }
+
+      const scenes = data.scenes || [];
+
+      if (scenes.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon"><img src="../../assets/icons/lightbulb.svg" width="48" height="48" alt="" /></div>
+            <div class="empty-title">No scenes configured</div>
+            <div class="empty-sub">Add scenes in <strong>Settings → Home Assistant</strong></div>
+            <div style="margin-top:16px">
+              <button class="btn btn--primary" onclick="window.location.href='../settings/index.html'">Open Settings</button>
+            </div>
+          </div>`;
+        return;
+      }
+
+      container.innerHTML = `
+        <div class="section-title">Favourite Scenes</div>
+        <div class="scenes-grid" id="scenes-grid"></div>`;
+
+      const grid = document.getElementById('scenes-grid');
+      grid.innerHTML = scenes.map((s, i) => `
+        <div class="scene-card" id="scene-${i}" style="animation-delay:${i * 0.06}s"
+             onclick="activateScene('${s.entity_id}', ${i})">
+          <div class="scene-icon">${s.icon || '<img src="../../assets/icons/lightbulb.svg" width="28" height="28" alt="" />'}</div>
+          <div class="scene-name">${s.name}</div>
+          <div class="scene-feedback" id="fb-${i}"></div>
+        </div>`).join('');
+    }
+
+    async function activateScene(entityId, idx) {
+      const card = document.getElementById(`scene-${idx}`);
+      const fb   = document.getElementById(`fb-${idx}`);
+
+      card.classList.add('loading');
+      fb.innerHTML = '<img src="../../assets/icons/hourglass.svg" width="16" height="16" alt="" />';
+
+      const result = await fetchAPI(`/api/ha/scene/${encodeURIComponent(entityId)}`, { method: 'POST' });
+
+      card.classList.remove('loading');
+
+      if (result?.ok) {
+        card.classList.add('success');
+        fb.innerHTML = '<img src="../../assets/icons/check.svg" width="16" height="16" alt="" />';
+        setTimeout(() => {
+          card.classList.remove('success');
+          fb.textContent = '';
+        }, 1800);
+      } else {
+        card.classList.add('error');
+        fb.innerHTML = '<img src="../../assets/icons/warning.svg" width="16" height="16" alt="" />';
+        setTimeout(() => {
+          card.classList.remove('error');
+          fb.textContent = '';
+        }, 2500);
+      }
+    }
+
+    load();
+  </script>
+</body>
+</html>

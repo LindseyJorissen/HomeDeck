@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>System Monitor — HomeDeck</title>
+  <link rel="stylesheet" href="../../css/styles.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app-page">
+
+    <header class="app-header">
+      <button class="back-btn" onclick="window.location.href='../../index.html'">←</button>
+      <span class="app-title"><img src="../../assets/icons/monitor.svg" width="20" height="20" alt="" /> System Monitor</span>
+      <button class="btn btn--secondary btn--sm" style="margin-left:auto" onclick="load()" id="refresh-btn">↻</button>
+    </header>
+
+    <div class="app-content">
+
+      <div class="res-card" id="cpu-card" style="animation-delay:0.05s">
+        <div class="res-header">
+          <div>
+            <div class="res-label"><img src="../../assets/icons/cpu.svg" width="16" height="16" alt="" /> CPU</div>
+            <div class="temp-badge" id="cpu-temp"></div>
+          </div>
+          <div class="res-percent" id="cpu-pct">--%</div>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill progress-fill--primary" id="cpu-bar" style="width:0%"></div>
+        </div>
+      </div>
+
+      <div class="res-card" style="animation-delay:0.10s">
+        <div class="res-header">
+          <div>
+            <div class="res-label"><img src="../../assets/icons/memory.svg" width="16" height="16" alt="" /> Memory</div>
+            <div class="res-sub" id="ram-detail">-- GB used of -- GB</div>
+          </div>
+          <div class="res-percent" id="ram-pct">--%</div>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill progress-fill--primary" id="ram-bar" style="width:0%"></div>
+        </div>
+      </div>
+
+      <div class="res-card" style="animation-delay:0.15s">
+        <div class="res-header">
+          <div>
+            <div class="res-label"><img src="../../assets/icons/disk.svg" width="16" height="16" alt="" /> Disk</div>
+            <div class="res-sub" id="disk-detail">-- GB used of -- GB</div>
+          </div>
+          <div class="res-percent" id="disk-pct">--%</div>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill progress-fill--success" id="disk-bar" style="width:0%"></div>
+        </div>
+      </div>
+
+      <div class="res-card" style="animation-delay:0.20s">
+        <div class="res-header">
+          <div>
+            <div class="res-label"><img src="../../assets/icons/load.svg" width="16" height="16" alt="" /> Load Average</div>
+          </div>
+          <div class="res-sub" id="load-detail">– / – / –</div>
+        </div>
+      </div>
+
+      <div class="section-title">System Info</div>
+      <div class="info-grid">
+        <div class="info-tile" style="animation-delay:0.20s">
+          <div class="info-tile-label">Hostname</div>
+          <div class="info-tile-value" id="info-host">-</div>
+        </div>
+        <div class="info-tile" style="animation-delay:0.22s">
+          <div class="info-tile-label">Uptime</div>
+          <div class="info-tile-value" id="info-uptime">-</div>
+        </div>
+        <div class="info-tile" style="animation-delay:0.24s">
+          <div class="info-tile-label">Local IP</div>
+          <div class="info-tile-value" id="info-ip">-</div>
+        </div>
+        <div class="info-tile" style="animation-delay:0.26s">
+          <div class="info-tile-label">Time</div>
+          <div class="info-tile-value" id="info-time">-</div>
+        </div>
+      </div>
+
+      <div class="last-updated" id="last-updated"></div>
+
+    </div>
+  </div>
+
+  <script src="../../js/utils.js"></script>
+  <script>
+    function applyBar(barId, pct) {
+      const el = document.getElementById(barId);
+      if (!el) return;
+      el.style.width = `${clamp(pct, 0, 100)}%`;
+      el.className = `progress-fill ${progressClass(pct)}`;
+    }
+
+    async function load() {
+      const [sys, net] = await Promise.all([
+        fetchAPI('/api/system'),
+        fetchAPI('/api/network'),
+      ]);
+
+      if (sys) {
+        document.getElementById('cpu-pct').textContent    = `${sys.cpu_percent}%`;
+        applyBar('cpu-bar', sys.cpu_percent);
+        if (sys.cpu_temp) {
+          document.getElementById('cpu-temp').innerHTML = `<img src="../../assets/icons/thermometer.svg" width="14" height="14" alt="" /> ${sys.cpu_temp}°C`;
+        }
+
+        document.getElementById('ram-pct').textContent    = `${sys.memory_percent}%`;
+        document.getElementById('ram-detail').textContent = `${sys.memory_used_gb} GB / ${sys.memory_total_gb} GB`;
+        applyBar('ram-bar', sys.memory_percent);
+
+        document.getElementById('disk-pct').textContent    = `${sys.disk_percent}%`;
+        document.getElementById('disk-detail').textContent = `${sys.disk_used_gb} GB / ${sys.disk_total_gb} GB`;
+        applyBar('disk-bar', sys.disk_percent);
+
+        if (sys.load_avg) {
+          document.getElementById('load-detail').textContent =
+            `${sys.load_avg['1m']} / ${sys.load_avg['5m']} / ${sys.load_avg['15m']}`;
+        }
+
+        document.getElementById('info-host').textContent   = sys.hostname  || '-';
+        document.getElementById('info-uptime').textContent = sys.uptime    || '-';
+        document.getElementById('info-time').textContent   = new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+      }
+
+      if (net) {
+        document.getElementById('info-ip').textContent = net.local_ip || '-';
+      }
+
+      setLastUpdated('last-updated', new Date());
+    }
+
+    load();
+    setInterval(load, 5_000);
+  </script>
+</body>
+</html>

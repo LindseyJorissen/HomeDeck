@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>Settings — HomeDeck</title>
+  <link rel="stylesheet" href="../../css/styles.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app-page">
+
+    <header class="app-header">
+      <button class="back-btn" onclick="window.location.href='../../index.html'">←</button>
+      <span class="app-title"><img src="../../assets/icons/settings.svg" width="20" height="20" alt="" /> Settings</span>
+    </header>
+
+    <div class="app-content" style="padding-bottom:0">
+
+      <div class="settings-section" style="animation-delay:0.04s">
+        <div class="section-header"><img src="../../assets/icons/weather.svg" width="20" height="20" alt="" /> Weather</div>
+
+        <div class="setting-row" style="flex-direction:column;align-items:flex-start;gap:8px">
+          <div class="setting-label">Location</div>
+          <div class="setting-control" style="width:100%">
+            <div class="city-search-wrap">
+              <input class="input" id="city-input" type="text"
+                     placeholder="Search for a city…"
+                     autocomplete="off"
+                     oninput="onCityInput()" />
+              <div class="city-results" id="city-results"></div>
+            </div>
+            <div class="city-selected-chip" id="city-chip" style="display:none"></div>
+          </div>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-label">Temperature</div>
+          <div class="setting-control">
+            <div class="toggle-group" id="unit-toggle">
+              <button class="toggle-opt" data-val="fahrenheit" onclick="setUnit(this)">°F</button>
+              <button class="toggle-opt" data-val="celsius"    onclick="setUnit(this)">°C</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-label">Wind Speed</div>
+          <div class="setting-control">
+            <div class="toggle-group" id="wind-toggle">
+              <button class="toggle-opt" data-val="mph" onclick="setWind(this)">mph</button>
+              <button class="toggle-opt" data-val="kmh" onclick="setWind(this)">km/h</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-section" style="animation-delay:0.08s">
+        <div class="section-header"><img src="../../assets/icons/uptime.svg" width="20" height="20" alt="" /> Uptime Monitor</div>
+
+        <div id="checks-list"></div>
+
+        <div class="add-row">
+          <input class="input" id="new-check-name" placeholder="Name"
+                 style="width:120px;flex-shrink:0" />
+          <input class="input" id="new-check-url" placeholder="https://example.com"
+                 style="flex:1;min-width:160px" type="url" />
+          <button class="btn btn--primary btn--sm" onclick="addCheck()">+ Add</button>
+        </div>
+      </div>
+
+      <div class="settings-section" style="animation-delay:0.12s">
+        <div class="section-header"><img src="../../assets/icons/home.svg" width="20" height="20" alt="" /> Home Assistant</div>
+
+        <div class="setting-row" style="flex-direction:column;align-items:flex-start;gap:6px">
+          <div class="setting-label">Server URL</div>
+          <input class="input" id="ha-url" type="url"
+                 placeholder="http://homeassistant.local:8123"
+                 style="width:100%" />
+        </div>
+
+        <div class="setting-row" style="flex-direction:column;align-items:flex-start;gap:6px">
+          <div class="setting-label">Access Token</div>
+          <input class="input" id="ha-token" type="password"
+                 placeholder="Long-lived access token"
+                 style="width:100%" />
+          <div style="font-size:0.75rem;color:var(--text-secondary)">
+            Generate in HA → Profile → Long-Lived Access Tokens
+          </div>
+        </div>
+
+        <div class="setting-row" style="flex-direction:column;align-items:flex-start;gap:0">
+          <div class="setting-label" style="margin-bottom:8px">Favourite Scenes</div>
+          <div id="scenes-list" style="width:100%"></div>
+          <div class="add-row" style="padding:10px 0 4px">
+            <input class="input" id="new-scene-icon"  placeholder="Icon" style="width:52px;flex-shrink:0;text-align:center" />
+            <input class="input" id="new-scene-name"  placeholder="Scene name" style="width:140px;flex-shrink:0" />
+            <input class="input" id="new-scene-id"    placeholder="scene.entity_id" style="flex:1;min-width:160px" />
+            <button class="btn btn--primary btn--sm" onclick="addScene()">+ Add</button>
+          </div>
+        </div>
+      </div>
+
+      <div style="height:16px"></div>
+    </div>
+
+    <div class="save-bar">
+      <button class="btn btn--primary" style="flex:1" onclick="save()"><img src="../../assets/icons/save.svg" width="18" height="18" alt="" /> Save Settings</button>
+      <button class="btn btn--secondary" onclick="window.location.href='../../index.html'">Cancel</button>
+    </div>
+
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="../../js/utils.js"></script>
+  <script>
+
+    let _cfg    = {};         
+    let _lat    = null;
+    let _lon    = null;
+    let _cityName = '';
+    let _debounce = null;
+
+
+    async function init() {
+      const data = await fetchAPI('/api/config');
+      if (!data) {
+        showToast('Could not load config', true);
+        return;
+      }
+      _cfg = data;
+
+      const w = data.weather || {};
+      _lat      = w.latitude;
+      _lon      = w.longitude;
+      _cityName = w.location_name || '';
+      if (_cityName) showCityChip(_cityName, _lat, _lon);
+
+      setActiveToggle('unit-toggle', w.units      || 'fahrenheit');
+      setActiveToggle('wind-toggle', w.wind_unit  || 'mph');
+
+      renderChecks((data.uptime || {}).checks || []);
+
+      const ha = data.homeassistant || {};
+      document.getElementById('ha-url').value   = ha.url   || '';
+      document.getElementById('ha-token').value = ha.token || '';
+      renderScenes(ha.scenes || []);
+    }
+
+    function onCityInput() {
+      clearTimeout(_debounce);
+      const q = document.getElementById('city-input').value.trim();
+      if (q.length < 2) {
+        closeCityDropdown();
+        return;
+      }
+      _debounce = setTimeout(() => searchCity(q), 400);
+    }
+
+    async function searchCity(q) {
+      const data = await fetchAPI(`/api/geocode?q=${encodeURIComponent(q)}`);
+      const results = data?.results || [];
+      const box = document.getElementById('city-results');
+
+      if (!results.length) {
+        closeCityDropdown();
+        return;
+      }
+
+      box.innerHTML = results.map(r => `
+        <div class="city-result-item" onclick="selectCity(${r.latitude},${r.longitude},'${escJs(r.display)}')">
+          <div>${r.display}</div>
+          <div class="city-result-coords">${r.latitude.toFixed(4)}, ${r.longitude.toFixed(4)}</div>
+        </div>`).join('');
+      box.classList.add('open');
+    }
+
+    function selectCity(lat, lon, name) {
+      _lat      = lat;
+      _lon      = lon;
+      _cityName = name;
+      document.getElementById('city-input').value = '';
+      closeCityDropdown();
+      showCityChip(name, lat, lon);
+    }
+
+    function showCityChip(name, lat, lon) {
+      const chip = document.getElementById('city-chip');
+      chip.style.display = 'inline-flex';
+      chip.textContent = `✓ ${name}`;
+      if (lat != null) chip.title = `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
+    }
+
+    function closeCityDropdown() {
+      document.getElementById('city-results').classList.remove('open');
+    }
+
+    document.addEventListener('click', e => {
+      if (!e.target.closest('.city-search-wrap')) closeCityDropdown();
+    });
+
+    function setActiveToggle(groupId, value) {
+      document.querySelectorAll(`#${groupId} .toggle-opt`).forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.val === value);
+      });
+    }
+
+    function setUnit(btn) {
+      document.querySelectorAll('#unit-toggle .toggle-opt').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    }
+
+    function setWind(btn) {
+      document.querySelectorAll('#wind-toggle .toggle-opt').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    }
+
+    function getToggleVal(groupId) {
+      return document.querySelector(`#${groupId} .toggle-opt.active`)?.dataset.val || null;
+    }
+
+
+    let _checks = [];
+
+    function renderChecks(list) {
+      _checks = list;
+      const el = document.getElementById('checks-list');
+      if (!list.length) {
+        el.innerHTML = `<div style="padding:12px 20px;color:var(--text-secondary);font-size:0.88rem">No services yet.</div>`;
+        return;
+      }
+      el.innerHTML = list.map((c, i) => `
+        <div class="check-row">
+          <div class="check-name">${escHtml(c.name)}</div>
+          <div class="check-url">${escHtml(c.url)}</div>
+          <button class="btn btn--danger btn--sm btn--icon"
+                  onclick="removeCheck(${i})" title="Remove"><img src="../../assets/icons/trash.svg" width="14" height="14" alt="Remove" /></button>
+        </div>`).join('');
+    }
+
+    function addCheck() {
+      const name = document.getElementById('new-check-name').value.trim();
+      const url  = document.getElementById('new-check-url').value.trim();
+      if (!name || !url) return;
+      _checks = [..._checks, { name, url }];
+      renderChecks(_checks);
+      document.getElementById('new-check-name').value = '';
+      document.getElementById('new-check-url').value  = '';
+    }
+
+    function removeCheck(i) {
+      _checks = _checks.filter((_, idx) => idx !== i);
+      renderChecks(_checks);
+    }
+
+    let _scenes = [];
+
+    function renderScenes(list) {
+      _scenes = list;
+      const el = document.getElementById('scenes-list');
+      if (!list.length) {
+        el.innerHTML = `<div style="color:var(--text-secondary);font-size:0.88rem;padding:8px 0">No scenes yet.</div>`;
+        return;
+      }
+      el.innerHTML = list.map((s, i) => `
+        <div class="scene-row">
+          <div class="scene-row-icon">${s.icon || '<img src="../../assets/icons/lightbulb.svg" width="28" height="28" alt="" />'}</div>
+          <div style="flex:1">
+            <div style="font-weight:600;font-size:0.9rem">${escHtml(s.name)}</div>
+            <div style="font-size:0.78rem;color:var(--text-secondary)">${escHtml(s.entity_id)}</div>
+          </div>
+          <button class="btn btn--danger btn--sm btn--icon"
+                  onclick="removeScene(${i})" title="Remove"><img src="../../assets/icons/trash.svg" width="14" height="14" alt="Remove" /></button>
+        </div>`).join('');
+    }
+
+    function addScene() {
+      const icon = document.getElementById('new-scene-icon').value.trim();
+      const name = document.getElementById('new-scene-name').value.trim();
+      const id   = document.getElementById('new-scene-id').value.trim();
+      if (!name || !id) return;
+      _scenes = [..._scenes, { icon, name, entity_id: id }];
+      renderScenes(_scenes);
+      document.getElementById('new-scene-icon').value = '';
+      document.getElementById('new-scene-name').value = '';
+      document.getElementById('new-scene-id').value   = '';
+    }
+
+    function removeScene(i) {
+      _scenes = _scenes.filter((_, idx) => idx !== i);
+      renderScenes(_scenes);
+    }
+
+    async function save() {
+      const payload = {
+        weather: {
+          latitude:      _lat      ?? _cfg.weather?.latitude,
+          longitude:     _lon      ?? _cfg.weather?.longitude,
+          location_name: _cityName || _cfg.weather?.location_name,
+          units:         getToggleVal('unit-toggle'),
+          wind_unit:     getToggleVal('wind-toggle'),
+        },
+        uptime: { checks: _checks },
+        homeassistant: {
+          url:    document.getElementById('ha-url').value.trim(),
+          token:  document.getElementById('ha-token').value.trim(),
+          scenes: _scenes,
+        },
+      };
+
+      const result = await fetchAPI('/api/config', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(payload),
+      });
+
+      if (result?.ok) {
+        showToast('<img src="../../assets/icons/check.svg" width="14" height="14" alt="" /> Settings saved!');
+        setTimeout(() => window.location.href = '../../index.html', 1400);
+      } else {
+        showToast('<img src="../../assets/icons/warning.svg" width="14" height="14" alt="" /> Failed to save', true);
+      }
+    }
+
+    function showToast(msg, isErr = false) {
+      const t = document.getElementById('toast');
+      t.innerHTML = msg;
+      t.style.background = isErr ? 'var(--error)' : 'var(--text)';
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2200);
+    }
+
+    function escHtml(s) {
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    function escJs(s) {
+      return String(s).replace(/'/g,"\\'");
+    }
+
+    init();
+  </script>
+</body>
+</html>

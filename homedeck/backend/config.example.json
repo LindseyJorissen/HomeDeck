@@ -1,0 +1,23 @@
+{
+  "weather": {
+    "latitude": 40.7128,
+    "longitude": -74.0060,
+    "location_name": "New York, NY",
+    "units": "fahrenheit",
+    "wind_unit": "mph"
+  },
+  "uptime": {
+    "checks": [
+      {
+        "name": "My Site",
+        "url": "https://example.com"
+      }
+    ]
+  },
+  "servers": [],
+  "homeassistant": {
+    "url": "http://homeassistant.local:8123",
+    "token": "YOUR_LONG_LIVED_ACCESS_TOKEN_HERE",
+    "scenes": []
+  }
+}
