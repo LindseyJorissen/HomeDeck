@@ -5,88 +5,122 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
   <title>System Monitor — HomeDeck</title>
   <link rel="stylesheet" href="../../css/styles.css" />
-  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            bg:      'var(--bg)',
+            surface: 'var(--surface)',
+            text:    'var(--text)',
+            muted:   'var(--text-secondary)',
+            border:  'var(--border)',
+          },
+          borderRadius: {
+            card: 'var(--radius)',
+            sm:   'var(--radius-sm)',
+            xs:   'var(--radius-xs)',
+          },
+          boxShadow: {
+            app:  'var(--shadow)',
+            hover:'var(--shadow-hover)',
+            card: 'var(--shadow-card)',
+          },
+        }
+      }
+    }
+  </script>
 </head>
 <body>
-  <div class="app-page">
+  <div class="flex flex-col h-screen overflow-hidden">
 
-    <header class="app-header">
-      <button class="back-btn" onclick="window.location.href='../../index.html'">←</button>
-      <span class="app-title"><img src="../../assets/icons/monitor.svg" width="20" height="20" alt="" /> System Monitor</span>
-      <button class="btn btn--secondary btn--sm" style="margin-left:auto" onclick="load()" id="refresh-btn">↻</button>
+    <header class="flex items-center px-6 py-[14px] bg-surface border-b border-border shadow-app gap-[14px] flex-shrink-0 z-10">
+      <button class="w-11 h-11 min-w-[44px] border-none bg-bg rounded-sm cursor-pointer flex items-center justify-center text-[1.4rem] text-text transition-all duration-[180ms] hover:bg-border active:scale-[0.92] flex-shrink-0"
+              onclick="window.location.href='../../index.html'">←</button>
+      <span class="text-[1.45rem] font-bold text-text flex items-center gap-2">
+        <img src="../../assets/icons/monitor.svg" width="20" height="20" alt="" /> System Monitor
+      </span>
+      <button class="btn btn--secondary btn--sm ml-auto" onclick="load()" id="refresh-btn">↻</button>
     </header>
 
-    <div class="app-content">
+    <div class="flex-1 overflow-y-auto p-6">
 
-      <div class="res-card" id="cpu-card" style="animation-delay:0.05s">
-        <div class="res-header">
+      <div class="bg-surface rounded-sm p-5 mb-[14px] shadow-card border border-border slide-up" id="cpu-card" style="animation-delay:0.05s">
+        <div class="flex justify-between items-start mb-[14px]">
           <div>
-            <div class="res-label"><img src="../../assets/icons/cpu.svg" width="16" height="16" alt="" /> CPU</div>
-            <div class="temp-badge" id="cpu-temp"></div>
+            <div class="text-[1rem] font-semibold flex items-center gap-1">
+              <img src="../../assets/icons/cpu.svg" width="16" height="16" alt="" /> CPU
+            </div>
+            <div class="inline-flex items-center gap-1 text-[0.82rem] text-muted mt-1" id="cpu-temp"></div>
           </div>
-          <div class="res-percent" id="cpu-pct">--%</div>
+          <div class="text-[2.2rem] font-bold leading-none" id="cpu-pct">--%</div>
         </div>
-        <div class="progress-bar">
+        <div class="w-full h-2 bg-bg rounded-full overflow-hidden">
           <div class="progress-fill progress-fill--primary" id="cpu-bar" style="width:0%"></div>
         </div>
       </div>
 
-      <div class="res-card" style="animation-delay:0.10s">
-        <div class="res-header">
+      <div class="bg-surface rounded-sm p-5 mb-[14px] shadow-card border border-border slide-up" style="animation-delay:0.10s">
+        <div class="flex justify-between items-start mb-[14px]">
           <div>
-            <div class="res-label"><img src="../../assets/icons/memory.svg" width="16" height="16" alt="" /> Memory</div>
-            <div class="res-sub" id="ram-detail">-- GB used of -- GB</div>
+            <div class="text-[1rem] font-semibold flex items-center gap-1">
+              <img src="../../assets/icons/memory.svg" width="16" height="16" alt="" /> Memory
+            </div>
+            <div class="text-[0.82rem] text-muted mt-0.5" id="ram-detail">-- GB used of -- GB</div>
           </div>
-          <div class="res-percent" id="ram-pct">--%</div>
+          <div class="text-[2.2rem] font-bold leading-none" id="ram-pct">--%</div>
         </div>
-        <div class="progress-bar">
+        <div class="w-full h-2 bg-bg rounded-full overflow-hidden">
           <div class="progress-fill progress-fill--primary" id="ram-bar" style="width:0%"></div>
         </div>
       </div>
 
-      <div class="res-card" style="animation-delay:0.15s">
-        <div class="res-header">
+      <div class="bg-surface rounded-sm p-5 mb-[14px] shadow-card border border-border slide-up" style="animation-delay:0.15s">
+        <div class="flex justify-between items-start mb-[14px]">
           <div>
-            <div class="res-label"><img src="../../assets/icons/disk.svg" width="16" height="16" alt="" /> Disk</div>
-            <div class="res-sub" id="disk-detail">-- GB used of -- GB</div>
+            <div class="text-[1rem] font-semibold flex items-center gap-1">
+              <img src="../../assets/icons/disk.svg" width="16" height="16" alt="" /> Disk
+            </div>
+            <div class="text-[0.82rem] text-muted mt-0.5" id="disk-detail">-- GB used of -- GB</div>
           </div>
-          <div class="res-percent" id="disk-pct">--%</div>
+          <div class="text-[2.2rem] font-bold leading-none" id="disk-pct">--%</div>
         </div>
-        <div class="progress-bar">
+        <div class="w-full h-2 bg-bg rounded-full overflow-hidden">
           <div class="progress-fill progress-fill--success" id="disk-bar" style="width:0%"></div>
         </div>
       </div>
 
-      <div class="res-card" style="animation-delay:0.20s">
-        <div class="res-header">
-          <div>
-            <div class="res-label"><img src="../../assets/icons/load.svg" width="16" height="16" alt="" /> Load Average</div>
+      <div class="bg-surface rounded-sm p-5 mb-[14px] shadow-card border border-border slide-up" style="animation-delay:0.20s">
+        <div class="flex justify-between items-start">
+          <div class="text-[1rem] font-semibold flex items-center gap-1">
+            <img src="../../assets/icons/load.svg" width="16" height="16" alt="" /> Load Average
           </div>
-          <div class="res-sub" id="load-detail">– / – / –</div>
+          <div class="text-[0.82rem] text-muted" id="load-detail">– / – / –</div>
         </div>
       </div>
 
-      <div class="section-title">System Info</div>
-      <div class="info-grid">
-        <div class="info-tile" style="animation-delay:0.20s">
-          <div class="info-tile-label">Hostname</div>
-          <div class="info-tile-value" id="info-host">-</div>
+      <div class="text-[0.77rem] font-bold uppercase tracking-[0.8px] text-muted mb-3 mt-6">System Info</div>
+      <div class="grid grid-cols-2 gap-3">
+        <div class="bg-surface rounded-sm p-4 shadow-card border border-border slide-up" style="animation-delay:0.20s">
+          <div class="text-[0.75rem] uppercase tracking-[0.5px] text-muted">Hostname</div>
+          <div class="text-[1.05rem] font-semibold mt-1.5" id="info-host">-</div>
         </div>
-        <div class="info-tile" style="animation-delay:0.22s">
-          <div class="info-tile-label">Uptime</div>
-          <div class="info-tile-value" id="info-uptime">-</div>
+        <div class="bg-surface rounded-sm p-4 shadow-card border border-border slide-up" style="animation-delay:0.22s">
+          <div class="text-[0.75rem] uppercase tracking-[0.5px] text-muted">Uptime</div>
+          <div class="text-[1.05rem] font-semibold mt-1.5" id="info-uptime">-</div>
         </div>
-        <div class="info-tile" style="animation-delay:0.24s">
-          <div class="info-tile-label">Local IP</div>
-          <div class="info-tile-value" id="info-ip">-</div>
+        <div class="bg-surface rounded-sm p-4 shadow-card border border-border slide-up" style="animation-delay:0.24s">
+          <div class="text-[0.75rem] uppercase tracking-[0.5px] text-muted">Local IP</div>
+          <div class="text-[1.05rem] font-semibold mt-1.5" id="info-ip">-</div>
         </div>
-        <div class="info-tile" style="animation-delay:0.26s">
-          <div class="info-tile-label">Time</div>
-          <div class="info-tile-value" id="info-time">-</div>
+        <div class="bg-surface rounded-sm p-4 shadow-card border border-border slide-up" style="animation-delay:0.26s">
+          <div class="text-[0.75rem] uppercase tracking-[0.5px] text-muted">Time</div>
+          <div class="text-[1.05rem] font-semibold mt-1.5" id="info-time">-</div>
         </div>
       </div>
 
-      <div class="last-updated" id="last-updated"></div>
+      <div class="text-[0.75rem] text-muted text-center mt-3 pb-2" id="last-updated"></div>
 
     </div>
   </div>

@@ -6,49 +6,79 @@
   <title>Weather - HomeDeck</title>
   <link rel="stylesheet" href="../../css/styles.css" />
   <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            bg:      'var(--bg)',
+            surface: 'var(--surface)',
+            text:    'var(--text)',
+            muted:   'var(--text-secondary)',
+            border:  'var(--border)',
+          },
+          borderRadius: {
+            card: 'var(--radius)',
+            sm:   'var(--radius-sm)',
+            xs:   'var(--radius-xs)',
+          },
+          boxShadow: {
+            app:  'var(--shadow)',
+            hover:'var(--shadow-hover)',
+            card: 'var(--shadow-card)',
+          },
+        }
+      }
+    }
+  </script>
 </head>
 <body>
-  <div class="app-page">
+  <div class="flex flex-col h-screen overflow-hidden">
 
-    <header class="app-header">
-      <button class="back-btn" onclick="window.location.href='../../index.html'">←</button>
-      <img src="../../assets/icons/weather.svg" width="24" height="24" /><span class="app-title"> Weather</span>
-      <button class="btn btn--secondary btn--sm" style="margin-left:auto" onclick="load()" id="refresh-btn">↻</button>
+    <header class="flex items-center px-6 py-[14px] bg-surface border-b border-border shadow-app gap-[14px] flex-shrink-0 z-10">
+      <button class="w-11 h-11 min-w-[44px] border-none bg-bg rounded-sm cursor-pointer flex items-center justify-center text-[1.4rem] text-text transition-all duration-[180ms] hover:bg-border active:scale-[0.92] flex-shrink-0"
+              onclick="window.location.href='../../index.html'">←</button>
+      <img src="../../assets/icons/weather.svg" width="24" height="24" />
+      <span class="text-[1.45rem] font-bold text-text"> Weather</span>
+      <button class="btn btn--secondary btn--sm ml-auto" onclick="load()" id="refresh-btn">↻</button>
     </header>
 
-    <div class="app-content">
+    <div class="flex-1 overflow-y-auto p-6">
 
-      <div class="weather-hero" id="hero">
-        <div class="hero-icon" id="w-icon"><img src="../../assets/icons/thermometer.svg" width="64" height="64" alt="" /></div>
-        <div class="hero-temp" id="w-temp">--°</div>
-        <div class="hero-cond" id="w-cond">Loading weather…</div>
-        <div class="hero-location" id="w-loc"></div>
+      <div id="hero" class="bg-surface rounded-card px-7 py-8 text-text text-center mb-[18px] border border-border shadow-card slide-up">
+        <div id="w-icon" class="text-[5rem] leading-none">
+          <img src="../../assets/icons/thermometer.svg" width="64" height="64" alt="" />
+        </div>
+        <div id="w-temp" class="text-[5.5rem] font-bold leading-none mt-1.5">--°</div>
+        <div id="w-cond" class="text-[1.4rem] text-muted mt-1">Loading weather…</div>
+        <div id="w-loc" class="text-[0.9rem] text-muted mt-1.5"></div>
       </div>
 
-      <div class="detail-row">
-        <div class="detail-pill">
-          <div class="detail-icon"><img src="../../assets/icons/thermometer.svg" width="24" height="24" alt="" /></div>
-          <div class="detail-value" id="w-feels">--°</div>
-          <div class="detail-label">Feels Like</div>
+      <div class="grid grid-cols-3 gap-3 mb-[22px]">
+        <div class="bg-surface rounded-sm px-2.5 py-4 text-center shadow-card border border-border slide-up">
+          <div><img src="../../assets/icons/thermometer.svg" width="24" height="24" alt="" class="mx-auto" /></div>
+          <div id="w-feels" class="text-[1.25rem] font-bold mt-1.5">--°</div>
+          <div class="text-[0.73rem] text-muted uppercase tracking-[0.4px] mt-0.5">Feels Like</div>
         </div>
-        <div class="detail-pill">
-          <div class="detail-icon"><img src="../../assets/icons/humidity.svg" width="24" height="24" alt="" /></div>
-          <div class="detail-value" id="w-hum">--%</div>
-          <div class="detail-label">Humidity</div>
+        <div class="bg-surface rounded-sm px-2.5 py-4 text-center shadow-card border border-border slide-up">
+          <div><img src="../../assets/icons/humidity.svg" width="24" height="24" alt="" class="mx-auto" /></div>
+          <div id="w-hum" class="text-[1.25rem] font-bold mt-1.5">--%</div>
+          <div class="text-[0.73rem] text-muted uppercase tracking-[0.4px] mt-0.5">Humidity</div>
         </div>
-        <div class="detail-pill">
-          <div class="detail-icon"><img src="../../assets/icons/wind.svg" width="24" height="24" alt="" /></div>
-          <div class="detail-value" id="w-wind">--</div>
-          <div class="detail-label">Wind</div>
+        <div class="bg-surface rounded-sm px-2.5 py-4 text-center shadow-card border border-border slide-up">
+          <div><img src="../../assets/icons/wind.svg" width="24" height="24" alt="" class="mx-auto" /></div>
+          <div id="w-wind" class="text-[1.25rem] font-bold mt-1.5">--</div>
+          <div class="text-[0.73rem] text-muted uppercase tracking-[0.4px] mt-0.5">Wind</div>
         </div>
       </div>
 
-      <div class="section-title">Hourly Forecast</div>
-      <div class="forecast-scroll" id="forecast">
-        <div style="color:var(--text-secondary);padding:20px 0">Loading…</div>
+      <div class="text-[0.77rem] font-bold uppercase tracking-[0.8px] text-muted mb-3">Hourly Forecast</div>
+      <div class="forecast-scroll flex gap-2.5 overflow-x-auto pb-1.5" id="forecast">
+        <div class="text-muted py-5">Loading…</div>
       </div>
 
-      <div class="last-updated" id="last-updated"></div>
+      <div class="text-[0.75rem] text-muted text-center mt-3 pb-2" id="last-updated"></div>
 
     </div>
   </div>
@@ -76,11 +106,9 @@
 
       const fc = document.getElementById('forecast');
       if (!data.forecast || !data.forecast.length) {
-        fc.innerHTML = '<div style="color:var(--text-secondary);padding:20px 0">No forecast data</div>';
+        fc.innerHTML = '<div class="text-muted py-5">No forecast data</div>';
         return;
       }
-
-      const nowH = new Date().getHours();
 
       fc.innerHTML = data.forecast.map((h, i) => {
         const d     = new Date(h.time);
@@ -92,11 +120,12 @@
         const isNow = i === 0;
 
         return `
-          <div class="forecast-hour ${isNow ? 'now' : ''}" style="animation-delay:${i*0.04}s">
-            <div class="f-time">${isNow ? 'Now' : label}</div>
-            <div class="f-icon"><img src="../../assets/icons/${h.icon}" width="24" height="24" alt="" /></div>
-            <div class="f-temp">${h.temp}${unit}</div>
-            ${h.precip_chance > 0 ? `<div class="f-precip"><img src="../../assets/icons/humidity.svg" width="12" height="12" alt="" /> ${h.precip_chance}%</div>` : ''}
+          <div class="forecast-hour bg-surface rounded-sm px-[14px] py-[14px] text-center flex-shrink-0 min-w-[72px] shadow-card border border-border slide-up ${isNow ? 'now' : ''}"
+               style="animation-delay:${i*0.04}s">
+            <div class="text-[0.75rem] text-muted font-medium">${isNow ? 'Now' : label}</div>
+            <div class="my-1.5"><img src="../../assets/icons/${h.icon}" width="24" height="24" alt="" class="mx-auto" /></div>
+            <div class="text-[1rem] font-bold">${h.temp}${unit}</div>
+            ${h.precip_chance > 0 ? `<div class="text-[0.7rem] text-muted mt-0.5 flex items-center justify-center gap-0.5"><img src="../../assets/icons/humidity.svg" width="12" height="12" alt="" /> ${h.precip_chance}%</div>` : ''}
           </div>`;
       }).join('');
 

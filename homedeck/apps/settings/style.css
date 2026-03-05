@@ -1,224 +1,37 @@
-/* ── Settings sections ── */
-.settings-section {
-  background: var(--surface);
-  border-radius: var(--radius);
-  margin-bottom: 20px;
-  box-shadow: var(--shadow-card);
-  border: 1px solid var(--border);
-  overflow: hidden;
-  animation: slideUp 0.3s ease both;
+/* ── Toggle switch pseudo-element (cannot be expressed in Tailwind) ── */
+.toggle-slider::before {
+  content: '';
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  left: 3px;
+  top: 3px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform var(--transition);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+.toggle-switch input:checked + .toggle-slider {
+  background: var(--primary);
+}
+.toggle-switch input:checked + .toggle-slider::before {
+  transform: translateX(20px);
 }
 
-.section-header {
-  padding: 16px 20px 12px;
-  border-bottom: 1px solid var(--border);
-  font-size: 0.78rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
-  color: var(--text-secondary);
-  background: var(--surface-raised);
-}
-
-/* ── Setting rows ── */
-.setting-row {
-  padding: 14px 20px;
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.setting-row:last-child { border-bottom: none; }
-
-.setting-label {
-  font-size: 0.92rem;
-  font-weight: 600;
-  color: var(--text);
-  flex-shrink: 0;
-  min-width: 110px;
-}
-
-.setting-control {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-/* ── Toggle group (unit buttons) ── */
-.toggle-group {
-  display: flex;
-  gap: 0;
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius-xs);
-  overflow: hidden;
-}
-
-.toggle-opt {
-  padding: 9px 20px;
-  border: none;
-  background: var(--surface);
-  font-family: var(--font);
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: all var(--transition);
-  border-right: 1px solid var(--border);
-}
-
-.toggle-opt:last-child { border-right: none; }
-
+/* ── Toggle option active state (JS-toggled) ── */
 .toggle-opt.active {
   background: var(--primary);
   color: #fff;
   border-color: var(--primary);
 }
 
-.toggle-opt:not(.active):hover { background: var(--bg); }
-
-/* ── City search ── */
-.city-search-wrap {
-  position: relative;
-  flex: 1;
-  min-width: 200px;
-}
-
-.city-results {
-  position: absolute;
-  top: calc(100% + 4px);
-  left: 0;
-  right: 0;
-  background: var(--surface);
-  border: 1.5px solid var(--primary);
-  border-radius: var(--radius-xs);
-  box-shadow: var(--shadow-hover);
-  z-index: 50;
-  display: none;
-  max-height: 220px;
-  overflow-y: auto;
-}
-
+/* ── City dropdown open state (JS-toggled) ── */
 .city-results.open { display: block; }
 
-.city-result-item {
-  padding: 12px 14px;
-  cursor: pointer;
-  font-size: 0.9rem;
-  border-bottom: 1px solid var(--border);
-  transition: background var(--transition);
-}
-
-.city-result-item:last-child { border-bottom: none; }
+/* ── City result hover (requires var reference) ── */
 .city-result-item:hover { background: var(--primary-light); }
 
-.city-result-coords {
-  font-size: 0.75rem;
-  color: var(--text-secondary);
-  margin-top: 1px;
-}
-
-.city-selected-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  background: var(--success-light);
-  border: 1px solid #A8D5B5;
-  border-radius: 999px;
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: #1E6E3A;
-  margin-top: 8px;
-}
-
-/* ── Uptime checks list ── */
-.check-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 20px;
-  border-bottom: 1px solid var(--border);
-}
-
-.check-row:last-child { border-bottom: none; }
-
-.check-name {
-  font-size: 0.9rem;
-  font-weight: 600;
-  min-width: 120px;
-}
-
-.check-url {
-  font-size: 0.8rem;
-  color: var(--text-secondary);
-  flex: 1;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* ── Add-row inline form ── */
-.add-row {
-  display: flex;
-  gap: 8px;
-  padding: 12px 20px;
-  flex-wrap: wrap;
-}
-
-/* ── HA scene rows ── */
-.scene-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 20px;
-  border-bottom: 1px solid var(--border);
-}
-
-.scene-row:last-child { border-bottom: none; }
-
-.scene-row-icon {
-  font-size: 1.4rem;
-  width: 32px;
-  text-align: center;
-  cursor: pointer;
-  flex-shrink: 0;
-}
-
-/* ── Save bar ── */
-.save-bar {
-  position: sticky;
-  bottom: 0;
-  background: var(--surface);
-  border-top: 1px solid var(--border);
-  padding: 14px 20px;
-  display: flex;
-  gap: 10px;
-  box-shadow: 0 -4px 12px rgba(0,0,0,0.06);
-  z-index: 20;
-}
-
-/* ── Toast ── */
-.toast {
-  position: fixed;
-  bottom: 80px;
-  left: 50%;
-  transform: translateX(-50%) translateY(20px);
-  background: var(--text);
-  color: #fff;
-  padding: 12px 24px;
-  border-radius: 999px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.25s ease, transform 0.25s ease;
-  white-space: nowrap;
-  z-index: 100;
-}
-
+/* ── Toast show state (JS-toggled) ── */
 .toast.show {
   opacity: 1;
   transform: translateX(-50%) translateY(0);

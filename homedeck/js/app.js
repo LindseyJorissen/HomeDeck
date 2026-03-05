@@ -135,5 +135,20 @@ async function refreshHA() {
 }
 
 
+function applyCardVisibility() {
+  const vis = JSON.parse(localStorage.getItem('homedeck_cards') || '{}');
+  const map = {
+    'card-weather': vis.weather !== false,
+    'card-uptime':  vis.uptime  !== false,
+    'card-server':  vis.server  !== false,
+    'card-ha':      vis.ha      !== false,
+  };
+  for (const [id, show] of Object.entries(map)) {
+    const el = document.getElementById(id);
+    if (el) el.style.display = show ? '' : 'none';
+  }
+}
+
+applyCardVisibility();
 refreshDashboard();
 setInterval(refreshDashboard, 30_000);

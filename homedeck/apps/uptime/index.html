@@ -6,44 +6,75 @@
   <title>Uptime Monitor — HomeDeck</title>
   <link rel="stylesheet" href="../../css/styles.css" />
   <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            bg:      'var(--bg)',
+            surface: 'var(--surface)',
+            success: 'var(--success)',
+            error:   'var(--error)',
+            text:    'var(--text)',
+            muted:   'var(--text-secondary)',
+            border:  'var(--border)',
+          },
+          borderRadius: {
+            card: 'var(--radius)',
+            sm:   'var(--radius-sm)',
+            xs:   'var(--radius-xs)',
+          },
+          boxShadow: {
+            app:  'var(--shadow)',
+            hover:'var(--shadow-hover)',
+            card: 'var(--shadow-card)',
+          },
+        }
+      }
+    }
+  </script>
 </head>
 <body>
-  <div class="app-page">
+  <div class="flex flex-col h-screen overflow-hidden">
 
-    <header class="app-header">
-      <button class="back-btn" onclick="window.location.href='../../index.html'">←</button>
-      <span class="app-title"><img src="../../assets/icons/uptime.svg" width="20" height="20" alt="" /> Uptime Monitor</span>
-      <button class="btn btn--secondary btn--sm" style="margin-left:auto" onclick="refresh()" id="refresh-btn">
-        ↻ Refresh
-      </button>
+    <header class="flex items-center px-6 py-[14px] bg-surface border-b border-border shadow-app gap-[14px] flex-shrink-0 z-10">
+      <button class="w-11 h-11 min-w-[44px] border-none bg-bg rounded-sm cursor-pointer flex items-center justify-center text-[1.4rem] text-text transition-all duration-[180ms] hover:bg-border active:scale-[0.92] flex-shrink-0"
+              onclick="window.location.href='../../index.html'">←</button>
+      <span class="text-[1.45rem] font-bold text-text flex items-center gap-2">
+        <img src="../../assets/icons/uptime.svg" width="20" height="20" alt="" /> Uptime Monitor
+      </span>
+      <button class="btn btn--secondary btn--sm ml-auto" onclick="refresh()" id="refresh-btn">↻ Refresh</button>
     </header>
 
-    <div class="app-content">
+    <div class="flex-1 overflow-y-auto p-6">
 
-      <div class="summary-row">
-        <div class="summary-card summary-card--up">
-          <div class="summary-number" id="count-up">–</div>
-          <div class="summary-label">Online</div>
+      <div class="grid grid-cols-3 gap-[14px] mb-7">
+        <div class="bg-surface rounded-sm py-[18px] px-[14px] shadow-card text-center border border-border slide-up">
+          <div class="text-[2.6rem] font-bold leading-none text-success" id="count-up">–</div>
+          <div class="text-[0.76rem] uppercase tracking-[0.6px] text-muted mt-1">Online</div>
         </div>
-        <div class="summary-card summary-card--down">
-          <div class="summary-number" id="count-down">–</div>
-          <div class="summary-label">Offline</div>
+        <div class="bg-surface rounded-sm py-[18px] px-[14px] shadow-card text-center border border-border slide-up">
+          <div class="text-[2.6rem] font-bold leading-none text-error" id="count-down">–</div>
+          <div class="text-[0.76rem] uppercase tracking-[0.6px] text-muted mt-1">Offline</div>
         </div>
-        <div class="summary-card">
-          <div class="summary-number" id="count-total">–</div>
-          <div class="summary-label">Total</div>
+        <div class="bg-surface rounded-sm py-[18px] px-[14px] shadow-card text-center border border-border slide-up">
+          <div class="text-[2.6rem] font-bold leading-none text-text" id="count-total">–</div>
+          <div class="text-[0.76rem] uppercase tracking-[0.6px] text-muted mt-1">Total</div>
         </div>
       </div>
 
-      <div class="section-title">Services</div>
+      <div class="text-[0.77rem] font-bold uppercase tracking-[0.8px] text-muted mb-3">Services</div>
       <div id="services-list">
-        <div class="empty-state">
-          <div class="empty-icon" style="animation:pulse 1s infinite"><img src="../../assets/icons/uptime.svg" width="48" height="48" alt="" /></div>
-          <div class="empty-title">Checking services…</div>
+        <div class="text-center py-[52px] px-6 text-muted">
+          <div class="text-[3rem] mb-[14px]" style="animation:pulse 1s infinite">
+            <img src="../../assets/icons/uptime.svg" width="48" height="48" alt="" class="mx-auto" />
+          </div>
+          <div class="text-[1.1rem] font-semibold text-text">Checking services…</div>
         </div>
       </div>
 
-      <div class="last-updated" id="last-updated"></div>
+      <div class="text-[0.75rem] text-muted text-center mt-3 pb-2" id="last-updated"></div>
 
     </div>
   </div>
@@ -57,9 +88,11 @@
       if (btn) btn.disabled = true;
 
       list.innerHTML = `
-        <div class="empty-state">
-          <div class="empty-icon" style="animation:pulse 1s infinite"><img src="../../assets/icons/uptime.svg" width="48" height="48" alt="" /></div>
-          <div class="empty-title">Checking services…</div>
+        <div class="text-center py-[52px] px-6 text-muted">
+          <div class="text-[3rem] mb-[14px]" style="animation:pulse 1s infinite">
+            <img src="../../assets/icons/uptime.svg" width="48" height="48" alt="" class="mx-auto" />
+          </div>
+          <div class="text-[1.1rem] font-semibold text-text">Checking services…</div>
         </div>`;
 
       const data = await fetchAPI('/api/uptime');
@@ -81,10 +114,10 @@
 
       if (services.length === 0) {
         list.innerHTML = `
-          <div class="empty-state">
-            <div class="empty-icon"><img src="../../assets/icons/uptime.svg" width="48" height="48" alt="" /></div>
-            <div class="empty-title">No services configured</div>
-            <div class="empty-sub">Add entries to <code>backend/config.json</code></div>
+          <div class="text-center py-[52px] px-6 text-muted">
+            <div class="text-[3rem] mb-[14px]"><img src="../../assets/icons/uptime.svg" width="48" height="48" alt="" class="mx-auto" /></div>
+            <div class="text-[1.1rem] font-semibold text-text">No services configured</div>
+            <div class="text-[0.85rem] mt-[5px]">Add entries to <code>backend/config.json</code></div>
           </div>`;
         return;
       }
@@ -99,15 +132,16 @@
         const checkedAt = s.checked_at ? new Date(s.checked_at).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'}) : '';
 
         return `
-          <div class="service-row" style="animation-delay:${i * 0.05}s">
-            <div class="service-status-icon">${icon}</div>
-            <div class="service-info">
-              <div class="service-name">${s.name}</div>
-              <div class="service-url">${s.url}${errText}</div>
+          <div class="bg-surface rounded-sm px-[18px] py-[15px] mb-2.5 shadow-card flex items-center gap-[14px] border border-border slide-up"
+               style="animation-delay:${i * 0.05}s">
+            <div class="flex-shrink-0 w-8 text-center text-[1.6rem]">${icon}</div>
+            <div class="flex-1 min-w-0">
+              <div class="text-[1rem] font-semibold whitespace-nowrap overflow-hidden text-ellipsis">${s.name}</div>
+              <div class="text-[0.8rem] text-muted mt-0.5 whitespace-nowrap overflow-hidden text-ellipsis">${s.url}${errText}</div>
             </div>
-            <div class="service-meta">
-              <div class="response-time ${msClass}">${msText}</div>
-              <div class="checked-time">${checkedAt}</div>
+            <div class="text-right flex-shrink-0">
+              <div class="response-time text-[0.95rem] font-bold text-text ${msClass}">${msText}</div>
+              <div class="text-[0.75rem] text-muted mt-0.5">${checkedAt}</div>
             </div>
             <span class="badge badge--${isUp ? 'up' : 'down'}">${isUp ? '● UP' : '● DOWN'}</span>
           </div>`;

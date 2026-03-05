@@ -9,84 +9,111 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <title>HomeDeck</title>
     <link rel="stylesheet" href="css/styles.css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              bg:       'var(--bg)',
+              surface:  'var(--surface)',
+              raised:   'var(--surface-raised)',
+              primary:  'var(--primary)',
+              success:  'var(--success)',
+              warning:  'var(--warning)',
+              error:    'var(--error)',
+              text:     'var(--text)',
+              muted:    'var(--text-secondary)',
+              border:   'var(--border)',
+            },
+            borderRadius: {
+              card: 'var(--radius)',
+              sm:   'var(--radius-sm)',
+              xs:   'var(--radius-xs)',
+            },
+            boxShadow: {
+              app:  'var(--shadow)',
+              hover:'var(--shadow-hover)',
+              card: 'var(--shadow-card)',
+            },
+          }
+        }
+      }
+    </script>
   </head>
   <body>
     <div id="app">
-      <header class="topbar">
-        <div class="topbar-left">
-          <div class="topbar-clock" id="clock">--:--</div>
-          <div class="topbar-date" id="date">Loading…</div>
+
+      <header class="flex justify-between items-center px-8 py-[18px] bg-surface sticky top-0 z-10 border-b border-border shadow-app">
+        <div class="flex flex-col gap-0.5">
+          <div id="clock" class="text-[3.4rem] font-bold tracking-[-2px] text-text leading-none">--:--</div>
+          <div id="date" class="text-[0.95rem] text-muted tracking-[0.2px]">Loading…</div>
         </div>
 
-        <div class="topbar-right">
-          <div class="status-pill">
+        <div class="flex gap-2.5 items-center">
+          <div class="flex items-center gap-[7px] py-[7px] px-[14px] bg-bg rounded-full border border-border">
             <span class="status-dot checking" id="internet-dot"></span>
-            <span class="status-label">Internet</span>
+            <span class="text-[0.82rem] text-muted font-medium whitespace-nowrap">Internet</span>
           </div>
-          <div class="status-pill">
+          <div class="flex items-center gap-[7px] py-[7px] px-[14px] bg-bg rounded-full border border-border">
             <span class="status-dot checking" id="local-dot"></span>
-            <span class="status-label" id="local-label">Local</span>
+            <span class="text-[0.82rem] text-muted font-medium whitespace-nowrap" id="local-label">Local</span>
           </div>
           <button
-            class="settings-btn"
+            class="w-11 h-11 border border-border bg-bg rounded-sm cursor-pointer flex items-center justify-center transition-all duration-[180ms] hover:bg-border active:scale-[0.92] flex-shrink-0"
             onclick="window.location.href = 'apps/settings/index.html'"
             title="Settings">
-            <img
-              src="assets/icons/settings.svg"
-              width="18"
-              height="18"
-              alt="" />
+            <img src="assets/icons/settings.svg" width="18" height="18" alt="" />
           </button>
         </div>
       </header>
 
-      <main class="dashboard">
-        <div class="card-grid">
-          <div class="card" id="card-weather" onclick="openApp('weather')">
-            <div class="card-icon" id="weather-icon">
+      <main class="p-7 pb-10 min-h-[calc(100vh-90px)] overflow-y-auto">
+        <div class="grid grid-cols-[repeat(auto-fill,minmax(210px,1fr))] gap-5 max-w-[1300px] mx-auto">
+
+          <div class="card bg-surface rounded-card p-[22px] pb-5 shadow-card cursor-pointer flex flex-col gap-1.5 min-h-[158px] relative overflow-hidden border border-transparent hover:-translate-y-[5px] hover:shadow-hover hover:border-border active:scale-[0.965] active:shadow-app transition-[transform,box-shadow,border-color] duration-[180ms]"
+               id="card-weather" onclick="openApp('weather')">
+            <div id="weather-icon" class="text-[1.9rem] leading-none mb-0.5">
               <img src="assets/icons/sun.svg" width="24" height="24" />
             </div>
-            <div class="card-title">Weather</div>
-            <div class="card-value" id="weather-temp">--°</div>
-            <div class="card-sub" id="weather-cond">Loading…</div>
+            <div class="text-[0.78rem] font-bold text-muted uppercase tracking-[0.7px]">Weather</div>
+            <div class="text-[2.4rem] font-bold text-text leading-none mt-0.5" id="weather-temp">--°</div>
+            <div class="text-[0.82rem] text-muted mt-0.5" id="weather-cond">Loading…</div>
           </div>
 
-          <div class="card" id="card-uptime" onclick="openApp('uptime')">
-            <div class="card-icon">
-              <img
-                src="assets/icons/uptime.svg"
-                width="32"
-                height="32"
-                alt="" />
+          <div class="card bg-surface rounded-card p-[22px] pb-5 shadow-card cursor-pointer flex flex-col gap-1.5 min-h-[158px] relative overflow-hidden border border-transparent hover:-translate-y-[5px] hover:shadow-hover hover:border-border active:scale-[0.965] active:shadow-app transition-[transform,box-shadow,border-color] duration-[180ms]"
+               id="card-uptime" onclick="openApp('uptime')">
+            <div class="text-[1.9rem] leading-none mb-0.5">
+              <img src="assets/icons/uptime.svg" width="32" height="32" alt="" />
             </div>
-            <div class="card-title">Uptime Monitor</div>
-            <div class="card-value" id="uptime-value">-- / --</div>
-            <div class="card-sub" id="uptime-sub">Services Online</div>
+            <div class="text-[0.78rem] font-bold text-muted uppercase tracking-[0.7px]">Uptime Monitor</div>
+            <div class="text-[2.4rem] font-bold text-text leading-none mt-0.5" id="uptime-value">-- / --</div>
+            <div class="text-[0.82rem] text-muted mt-0.5" id="uptime-sub">Services Online</div>
           </div>
 
-          <div class="card" id="card-server" onclick="openApp('server')">
-            <div class="card-icon">
-              <img
-                src="assets/icons/server.svg"
-                width="32"
-                height="32"
-                alt="" />
+          <div class="card bg-surface rounded-card p-[22px] pb-5 shadow-card cursor-pointer flex flex-col gap-1.5 min-h-[158px] relative overflow-hidden border border-transparent hover:-translate-y-[5px] hover:shadow-hover hover:border-border active:scale-[0.965] active:shadow-app transition-[transform,box-shadow,border-color] duration-[180ms]"
+               id="card-server" onclick="openApp('server')">
+            <div class="text-[1.9rem] leading-none mb-0.5">
+              <img src="assets/icons/server.svg" width="32" height="32" alt="" />
             </div>
-            <div class="card-title">System</div>
-            <div class="card-value" id="server-cpu">--%</div>
-            <div class="card-sub" id="server-sub">CPU Usage</div>
+            <div class="text-[0.78rem] font-bold text-muted uppercase tracking-[0.7px]">System</div>
+            <div class="text-[2.4rem] font-bold text-text leading-none mt-0.5" id="server-cpu">--%</div>
+            <div class="text-[0.82rem] text-muted mt-0.5" id="server-sub">CPU Usage</div>
           </div>
 
-          <div class="card" id="card-ha" onclick="openApp('homeassistant')">
-            <div class="card-icon">
+          <div class="card bg-surface rounded-card p-[22px] pb-5 shadow-card cursor-pointer flex flex-col gap-1.5 min-h-[158px] relative overflow-hidden border border-transparent hover:-translate-y-[5px] hover:shadow-hover hover:border-border active:scale-[0.965] active:shadow-app transition-[transform,box-shadow,border-color] duration-[180ms]"
+               id="card-ha" onclick="openApp('homeassistant')">
+            <div class="text-[1.9rem] leading-none mb-0.5">
               <img src="assets/icons/home.svg" width="32" height="32" alt="" />
             </div>
-            <div class="card-title">Home Assistant</div>
-            <div class="card-value card-value--sm" id="ha-scenes-count">–</div>
-            <div class="card-sub" id="ha-sub">Favourite Scenes</div>
+            <div class="text-[0.78rem] font-bold text-muted uppercase tracking-[0.7px]">Home Assistant</div>
+            <div class="text-[1.25rem] font-bold text-text leading-[1.3] mt-0.5" id="ha-scenes-count">–</div>
+            <div class="text-[0.82rem] text-muted mt-0.5" id="ha-sub">Favourite Scenes</div>
           </div>
+
         </div>
       </main>
+
     </div>
 
     <script src="js/utils.js"></script>
