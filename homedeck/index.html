@@ -73,10 +73,10 @@
 
           <div class="card bg-surface rounded-card p-[22px] pb-5 shadow-card cursor-pointer flex flex-col gap-1.5 min-h-[158px] relative overflow-hidden border border-transparent hover:-translate-y-[5px] hover:shadow-hover hover:border-border active:scale-[0.965] active:shadow-app transition-[transform,box-shadow,border-color] duration-[180ms]"
                id="card-weather" onclick="openApp('weather')">
-            <div id="weather-icon" class="text-[1.9rem] leading-none mb-0.5">
-              <img src="assets/icons/sun.svg" width="24" height="24" />
+            <div class="flex items-center justify-between">
+              <div class="text-[0.78rem] font-bold text-muted uppercase tracking-[0.7px]">Weather</div>
+              <div id="weather-icon"><img src="assets/icons/sun.svg" width="24" height="24" /></div>
             </div>
-            <div class="text-[0.78rem] font-bold text-muted uppercase tracking-[0.7px]">Weather</div>
             <div class="text-[2.4rem] font-bold text-text leading-none mt-0.5" id="weather-temp">--°</div>
             <div class="text-[0.82rem] text-muted mt-0.5" id="weather-cond">Loading…</div>
           </div>

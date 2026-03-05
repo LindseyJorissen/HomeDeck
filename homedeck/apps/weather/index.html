@@ -47,7 +47,7 @@
     <div class="flex-1 overflow-y-auto p-6">
 
       <div id="hero" class="bg-surface rounded-card px-7 py-8 text-text text-center mb-[18px] border border-border shadow-card slide-up">
-        <div id="w-icon" class="text-[5rem] leading-none">
+        <div id="w-icon" class="text-[5rem] leading-none ">
           <img src="../../assets/icons/thermometer.svg" width="64" height="64" alt="" />
         </div>
         <div id="w-temp" class="text-[5.5rem] font-bold leading-none mt-1.5">--°</div>
@@ -56,20 +56,30 @@
       </div>
 
       <div class="grid grid-cols-3 gap-3 mb-[22px]">
-        <div class="bg-surface rounded-sm px-2.5 py-4 text-center shadow-card border border-border slide-up">
-          <div><img src="../../assets/icons/thermometer.svg" width="24" height="24" alt="" class="mx-auto" /></div>
-          <div id="w-feels" class="text-[1.25rem] font-bold mt-1.5">--°</div>
-          <div class="text-[0.73rem] text-muted uppercase tracking-[0.4px] mt-0.5">Feels Like</div>
+        <div class="col-span-2 bg-surface rounded-sm px-4 py-4 shadow-card border border-border slide-up flex items-center gap-4">
+          <div class="flex flex-col items-center flex-shrink-0 w-[38%]">
+            <img src="../../assets/icons/thermometer.svg" width="24" height="24" alt="" />
+            <div id="w-feels" class="text-[2rem] font-bold mt-1 leading-none">--°</div>
+            <div class="text-[0.73rem] text-muted uppercase tracking-[0.4px] mt-1">Feels Like</div>
+          </div>
+          <div class="w-px self-stretch bg-border flex-shrink-0"></div>
+          <div class="flex flex-col items-center flex-1 min-w-0">
+            <div id="w-outfit" title=""></div>
+            <div id="w-outfit-label" class="text-[0.75rem] text-muted leading-tight text-center mt-1.5"></div>
+            <div id="w-outfit-extra" class="text-[0.65rem] text-muted leading-tight text-center mt-1 hidden"></div>
+          </div>
         </div>
-        <div class="bg-surface rounded-sm px-2.5 py-4 text-center shadow-card border border-border slide-up">
-          <div><img src="../../assets/icons/humidity.svg" width="24" height="24" alt="" class="mx-auto" /></div>
-          <div id="w-hum" class="text-[1.25rem] font-bold mt-1.5">--%</div>
-          <div class="text-[0.73rem] text-muted uppercase tracking-[0.4px] mt-0.5">Humidity</div>
-        </div>
-        <div class="bg-surface rounded-sm px-2.5 py-4 text-center shadow-card border border-border slide-up">
-          <div><img src="../../assets/icons/wind.svg" width="24" height="24" alt="" class="mx-auto" /></div>
-          <div id="w-wind" class="text-[1.25rem] font-bold mt-1.5">--</div>
-          <div class="text-[0.73rem] text-muted uppercase tracking-[0.4px] mt-0.5">Wind</div>
+        <div class="flex flex-col gap-3">
+          <div class="bg-surface rounded-sm px-2 py-2.5 text-center shadow-card border border-border slide-up flex-1 flex flex-col items-center justify-center">
+            <div><img src="../../assets/icons/humidity.svg" width="18" height="18" alt="" class="mx-auto" /></div>
+            <div id="w-hum" class="text-[1rem] font-bold mt-1">--%</div>
+            <div class="text-[0.65rem] text-muted uppercase tracking-[0.4px]">Humidity</div>
+          </div>
+          <div class="bg-surface rounded-sm px-2 py-2.5 text-center shadow-card border border-border slide-up flex-1 flex flex-col items-center justify-center">
+            <div><img src="../../assets/icons/wind.svg" width="18" height="18" alt="" class="mx-auto" /></div>
+            <div id="w-wind" class="text-[1rem] font-bold mt-1">--</div>
+            <div class="text-[0.65rem] text-muted uppercase tracking-[0.4px]">Wind</div>
+          </div>
         </div>
       </div>
 
@@ -85,6 +95,45 @@
 
   <script src="../../js/utils.js"></script>
   <script>
+    function getOutfitHint(feelsLike, unit, forecast) {
+      const toC = t => unit === '°F' ? (t - 32) * 5 / 9 : t;
+
+      function getTier(c) {
+        if (c < 0)  return { icon: 'wintercoat_gloves.png', label: 'Heavy coat & gloves', bring: 'Heavy coat', tier: 0 };
+        if (c < 5)  return { icon: 'wintercoat.png',        label: 'Coat',                bring: 'Coat',        tier: 1 };
+        if (c < 10) return { icon: 'gloves.png',            label: 'Cold — wear gloves',  bring: 'Gloves',      tier: 2 };
+        if (c < 15) return { icon: 'lightjacket.png',       label: 'Light jacket',        bring: 'Light jacket',tier: 3 };
+        if (c < 20) return { icon: 'longsleeveshirt.png',   label: 'Long sleeves',        bring: 'Long sleeves',tier: 4 };
+        if (c < 25) return { icon: 'tshirt.png',            label: 'T-shirt',             bring: 'T-shirt',     tier: 5 };
+        if (c < 30) return { icon: 'tshirt_shorts.png',     label: 'Shorts & tee',        bring: 'Shorts',      tier: 6 };
+        return             { icon: 'sun_shorts.png',        label: 'Stay cool!',          bring: 'Light layers',tier: 7 };
+      }
+
+      const toTime = h => { const d = new Date(h.time), hh = d.getHours(); return hh === 0 ? '12am' : hh < 12 ? `${hh}am` : hh === 12 ? '12pm' : `${hh - 12}pm`; };
+
+      const current = getTier(toC(feelsLike));
+      const hints = [];
+
+      if (forecast && forecast.length > 1) {
+        const next8 = forecast.slice(1, 9);
+
+        // colder tier coming?
+        let coldestTier = current.tier;
+        let coldestHour = null;
+        for (const h of next8) {
+          const tier = getTier(toC(h.temp));
+          if (tier.tier < coldestTier) { coldestTier = tier.tier; coldestHour = h; }
+        }
+        if (coldestHour) hints.push(`→ ${getTier(coldestTier).bring} by ${toTime(coldestHour)}`);
+
+        // rain coming?
+        const rainHour = next8.find(h => (h.precip_chance || 0) >= 40);
+        if (rainHour) hints.push(`☔ Rain at ${toTime(rainHour)}`);
+      }
+
+      return { ...current, extra: hints.length ? hints.join(' · ') : null };
+    }
+
     async function load() {
       const data = await fetchAPI('/api/weather');
 
@@ -101,6 +150,13 @@
       document.getElementById('w-cond').textContent  = data.condition;
       document.getElementById('w-loc').textContent   = data.location;
       document.getElementById('w-feels').textContent = `${data.feels_like}${unit}`;
+      const outfit = getOutfitHint(data.feels_like, unit, data.forecast);
+      document.getElementById('w-outfit').innerHTML = `<img src="../../assets/icons/${outfit.icon}" width="48" height="48" alt="${outfit.label}" class="mx-auto" />`;
+      document.getElementById('w-outfit').title = outfit.label;
+      document.getElementById('w-outfit-label').textContent = outfit.label;
+      const extraEl = document.getElementById('w-outfit-extra');
+      if (outfit.extra) { extraEl.textContent = outfit.extra; extraEl.classList.remove('hidden'); }
+      else { extraEl.textContent = ''; extraEl.classList.add('hidden'); }
       document.getElementById('w-hum').textContent   = `${data.humidity}%`;
       document.getElementById('w-wind').textContent  = `${data.wind_speed} ${data.wind_unit || 'mph'}`;
 
