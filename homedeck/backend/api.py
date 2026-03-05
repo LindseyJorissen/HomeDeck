@@ -212,7 +212,7 @@ async def get_uptime():
 
 @app.get("/api/weather")
 async def get_weather():
-    """Current weather + hourly forecast via Open-Meteo (free, no API key)."""
+    """Current weather + hourly forecast via Open-Meteo (free, no API key needed)."""
     cfg  = load_config().get("weather", {})
     lat  = cfg.get("latitude",      40.7128)
     lon  = cfg.get("longitude",    -74.0060)
@@ -229,9 +229,10 @@ async def get_weather():
                     "longitude":        lon,
                     "current":          "temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,is_day",
                     "hourly":           "temperature_2m,weather_code,precipitation_probability,is_day",
+                    "daily":            "weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max",
                     "temperature_unit": units,
                     "wind_speed_unit":  wind_u,
-                    "forecast_days":    2,
+                    "forecast_days":    7,
                     "timezone":         "auto",
                 },
             )
@@ -272,20 +273,45 @@ async def get_weather():
             "precip_chance":h_precip[i]         if i < len(h_precip) else 0,
         })
 
+    daily_raw   = raw.get("daily", {})
+    d_times     = daily_raw.get("time", [])
+    d_codes     = daily_raw.get("weather_code", [])
+    d_max       = daily_raw.get("temperature_2m_max", [])
+    d_min       = daily_raw.get("temperature_2m_min", [])
+    d_precip    = daily_raw.get("precipitation_probability_max", [])
+
+    today_str = datetime.now().strftime("%Y-%m-%d")
+    DAY_NAMES = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+
+    daily_forecast = []
+    for i, dt_str in enumerate(d_times):
+        _, d_icon = WMO.get(d_codes[i] if i < len(d_codes) else 0, ("", "weather.svg"))
+        day_dt = datetime.strptime(dt_str, "%Y-%m-%d")
+        label  = "Today" if dt_str == today_str else DAY_NAMES[day_dt.weekday()]
+        daily_forecast.append({
+            "date":         dt_str,
+            "day":          label,
+            "icon":         d_icon,
+            "high":         round(d_max[i])   if i < len(d_max)    else None,
+            "low":          round(d_min[i])   if i < len(d_min)    else None,
+            "precip_chance":d_precip[i]       if i < len(d_precip) else 0,
+        })
+
     unit_sym = "°F" if units == "fahrenheit" else "°C"
 
     return {
-        "location":    loc,
-        "temperature": round(cur.get("temperature_2m", 0)),
-        "feels_like":  round(cur.get("apparent_temperature", 0)),
-        "humidity":    cur.get("relative_humidity_2m"),
-        "wind_speed":  round(cur.get("wind_speed_10m", 0)),
-        "wind_unit":   wind_u,
-        "unit":        unit_sym,
-        "condition":   condition,
-        "icon":        icon,
-        "forecast":    forecast,
-        "timestamp":   datetime.now().isoformat(),
+        "location":       loc,
+        "temperature":    round(cur.get("temperature_2m", 0)),
+        "feels_like":     round(cur.get("apparent_temperature", 0)),
+        "humidity":       cur.get("relative_humidity_2m"),
+        "wind_speed":     round(cur.get("wind_speed_10m", 0)),
+        "wind_unit":      wind_u,
+        "unit":           unit_sym,
+        "condition":      condition,
+        "icon":           icon,
+        "forecast":       forecast,
+        "daily_forecast": daily_forecast,
+        "timestamp":      datetime.now().isoformat(),
     }
 
 

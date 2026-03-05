@@ -88,6 +88,11 @@
         <div class="text-muted py-5">Loading…</div>
       </div>
 
+      <div class="text-[0.77rem] font-bold uppercase tracking-[0.8px] text-muted mb-3 mt-6">7-Day Forecast</div>
+      <div class="bg-surface rounded-card border border-border shadow-card overflow-hidden slide-up" id="daily-forecast">
+        <div class="text-muted py-5 text-center text-sm">Loading…</div>
+      </div>
+
       <div class="text-[0.75rem] text-muted text-center mt-3 pb-2" id="last-updated"></div>
 
     </div>
@@ -184,6 +189,25 @@
             ${h.precip_chance > 0 ? `<div class="text-[0.7rem] text-muted mt-0.5 flex items-center justify-center gap-0.5"><img src="../../assets/icons/humidity.svg" width="12" height="12" alt="" /> ${h.precip_chance}%</div>` : ''}
           </div>`;
       }).join('');
+
+      const df = document.getElementById('daily-forecast');
+      if (!data.daily_forecast || !data.daily_forecast.length) {
+        df.innerHTML = '<div class="text-muted py-5 text-center text-sm">No daily data</div>';
+      } else {
+        df.innerHTML = data.daily_forecast.map((d, i) => `
+          <div class="flex items-center px-4 py-3 gap-3 ${i < data.daily_forecast.length - 1 ? 'border-b border-border' : ''}">
+            <div class="w-[52px] text-[0.85rem] font-semibold text-text flex-shrink-0">${d.day}</div>
+            <img src="../../assets/icons/${d.icon}" width="22" height="22" alt="" class="flex-shrink-0" />
+            ${d.precip_chance > 0
+              ? `<div class="flex items-center gap-0.5 text-[0.72rem] text-muted w-[38px] flex-shrink-0"><img src="../../assets/icons/humidity.svg" width="12" height="12" alt="" />${d.precip_chance}%</div>`
+              : `<div class="w-[38px] flex-shrink-0"></div>`}
+            <div class="flex-1 flex justify-end items-center gap-2">
+              <span class="text-[0.82rem] text-muted">${d.low}${unit}</span>
+              <div class="flex-1 max-w-[80px] h-1.5 bg-border rounded-full overflow-hidden"></div>
+              <span class="text-[0.9rem] font-bold text-text">${d.high}${unit}</span>
+            </div>
+          </div>`).join('');
+      }
 
       setLastUpdated('last-updated', new Date());
     }
