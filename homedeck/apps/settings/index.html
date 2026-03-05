@@ -133,12 +133,40 @@
         </div>
 
         <div class="px-5 py-[14px] flex flex-col items-start">
-          <div class="text-[0.92rem] font-semibold text-text mb-2">Favourite Scenes</div>
+          <div class="flex items-center w-full mb-2 gap-2">
+            <div class="text-[0.92rem] font-semibold text-text flex-1">Favourite Scenes</div>
+            <button class="btn btn--secondary btn--sm" id="browse-btn" onclick="browseScenes()">
+              <img src="../../assets/icons/home.svg" width="13" height="13" alt="" /> Browse HA Scenes
+            </button>
+          </div>
           <div id="scenes-list" class="w-full"></div>
+
+          <!-- Scene picker panel -->
+          <div id="scene-picker" class="hidden w-full mt-2 border border-border rounded-sm overflow-hidden">
+            <div class="px-3 py-2 bg-raised border-b border-border flex items-center gap-2">
+              <span class="text-[0.82rem] font-semibold flex-1 text-text">Available Scenes</span>
+              <button class="btn btn--primary btn--sm" onclick="addSelectedScenes()">+ Add Selected</button>
+              <button class="btn btn--secondary btn--sm" onclick="closePicker()" style="padding:0 10px">✕</button>
+            </div>
+            <div id="picker-list" class="max-h-[220px] overflow-y-auto"></div>
+          </div>
+
+          <!-- Manual add fallback -->
           <div class="flex gap-2 pt-2.5 pb-1 flex-wrap w-full">
-            <input class="input" id="new-scene-icon"  placeholder="Icon" style="width:52px;flex-shrink:0;text-align:center" />
-            <input class="input" id="new-scene-name"  placeholder="Scene name" style="width:140px;flex-shrink:0" />
-            <input class="input" id="new-scene-id"    placeholder="scene.entity_id" style="flex:1;min-width:160px" />
+            <div class="relative flex-shrink-0" id="icon-picker-wrap">
+              <button type="button"
+                      class="input flex items-center justify-center text-[1.3rem] cursor-pointer select-none"
+                      id="icon-btn" style="width:52px;padding:0"
+                      onclick="toggleIconPicker(event)"><img src="../../assets/icons/lightbulb.svg" width="22" height="22" alt="" /></button>
+              <input type="hidden" id="new-scene-icon" value="" />
+              <div id="icon-dropdown"
+                   class="hidden absolute bottom-[calc(100%+6px)] left-0 bg-surface border-[1.5px] border-primary rounded-xs shadow-hover z-50 p-1.5"
+                   style="width:214px">
+                <div id="icon-grid" class="grid grid-cols-6 gap-0.5"></div>
+              </div>
+            </div>
+            <input class="input" id="new-scene-name"  placeholder="Scene name" style="width:130px;flex-shrink:0" />
+            <input class="input" id="new-scene-id"    placeholder="scene.entity_id" style="flex:1;min-width:140px" />
             <button class="btn btn--primary btn--sm" onclick="addScene()">+ Add</button>
           </div>
         </div>
@@ -352,9 +380,6 @@
       document.getElementById('city-results').classList.remove('open');
     }
 
-    document.addEventListener('click', e => {
-      if (!e.target.closest('.city-search-wrap') && !e.target.closest('#city-results')) closeCityDropdown();
-    });
 
     function setActiveToggle(groupId, value) {
       document.querySelectorAll(`#${groupId} .toggle-opt`).forEach(btn => {
@@ -421,7 +446,7 @@
       }
       el.innerHTML = list.map((s, i) => `
         <div class="flex items-center gap-2.5 py-2.5 border-b border-[var(--border)]">
-          <div class="text-[1.4rem] w-8 text-center cursor-pointer flex-shrink-0">${s.icon || '<img src="../../assets/icons/lightbulb.svg" width="28" height="28" alt="" />'}</div>
+          <div class="w-8 flex items-center justify-center flex-shrink-0">${iconHtml(s.icon)}</div>
           <div class="flex-1">
             <div class="font-semibold text-[0.9rem]">${escHtml(s.name)}</div>
             <div class="text-[0.78rem] text-muted">${escHtml(s.entity_id)}</div>
@@ -438,7 +463,8 @@
       if (!name || !id) return;
       _scenes = [..._scenes, { icon, name, entity_id: id }];
       renderScenes(_scenes);
-      document.getElementById('new-scene-icon').value = '';
+      document.getElementById('new-scene-icon').value  = '';
+      document.getElementById('icon-btn').innerHTML    = '<img src="../../assets/icons/lightbulb.svg" width="22" height="22" alt="" />';
       document.getElementById('new-scene-name').value = '';
       document.getElementById('new-scene-id').value   = '';
     }
@@ -446,6 +472,131 @@
     function removeScene(i) {
       _scenes = _scenes.filter((_, idx) => idx !== i);
       renderScenes(_scenes);
+    }
+
+    // SVG filenames — existing ones load immediately, new ones show faded until you drop the file in assets/icons/
+    const SCENE_ICONS = [
+      'lightbulb.svg',   'moon.svg',      'sun.svg',      'home.svg',
+      'movie.svg',       'dinner.svg',    'party.svg',    'couch.svg',
+      'music.svg',       'monitor.svg',   'bed.svg',      'workout.svg',
+      'book.svg',        'candle.svg',    'gaming.svg',   'relax.svg',
+      'fire.svg',        'plant.svg',     'shower.svg',   'cooking.svg',
+      'sunrise.svg',     'night.svg',     'snow.svg',     'wind.svg',
+      'cloud-fog.svg',   'thermometer.svg','partly-cloudy.svg','server.svg',
+      'cpu.svg',         'disk.svg',
+    ];
+
+    function iconHtml(icon, size = 28) {
+      if (!icon) return `<img src="../../assets/icons/lightbulb.svg" width="${size}" height="${size}" alt="" />`;
+      if (icon.endsWith('.svg')) return `<img src="../../assets/icons/${icon}" width="${size}" height="${size}" alt="" />`;
+      return icon; // legacy emoji fallback
+    }
+
+    document.getElementById('icon-grid').innerHTML = SCENE_ICONS.map(ic =>
+      `<button type="button"
+               class="w-8 h-8 rounded-xs hover:bg-bg transition-colors duration-[120ms] border-none bg-transparent cursor-pointer flex items-center justify-center"
+               onclick="selectIcon('${ic}')">
+         <img src="../../assets/icons/${ic}" width="20" height="20" alt="" onerror="this.style.opacity='0.2'" />
+       </button>`
+    ).join('');
+
+    function toggleIconPicker(e) {
+      e.stopPropagation();
+      document.getElementById('icon-dropdown').classList.toggle('hidden');
+    }
+
+    function selectIcon(icon) {
+      document.getElementById('icon-btn').innerHTML = `<img src="../../assets/icons/${icon}" width="22" height="22" alt="" />`;
+      document.getElementById('new-scene-icon').value = icon;
+      document.getElementById('icon-dropdown').classList.add('hidden');
+    }
+
+    document.addEventListener('click', e => {
+      if (!e.target.closest('#icon-picker-wrap'))
+        document.getElementById('icon-dropdown')?.classList.add('hidden');
+      if (!e.target.closest('.city-search-wrap') && !e.target.closest('#city-results'))
+        closeCityDropdown();
+    });
+
+    let _haScenes = [];
+
+    async function browseScenes() {
+      const btn        = document.getElementById('browse-btn');
+      const picker     = document.getElementById('scene-picker');
+      const pickerList = document.getElementById('picker-list');
+
+      // If already open, just close
+      if (!picker.classList.contains('hidden')) {
+        closePicker();
+        return;
+      }
+
+      btn.disabled    = true;
+      btn.textContent = 'Loading…';
+
+      const haUrl   = document.getElementById('ha-url').value.trim();
+      const haToken = document.getElementById('ha-token').value.trim();
+
+      if (!haUrl || !haToken) {
+        showToast('<img src="../../assets/icons/warning.svg" width="14" height="14" alt="" /> Enter HA URL and token first', true);
+        btn.disabled    = false;
+        btn.innerHTML   = '<img src="../../assets/icons/home.svg" width="13" height="13" alt="" /> Browse HA Scenes';
+        return;
+      }
+
+      // Save URL+token temporarily so the backend can use them
+      await fetchAPI('/api/config', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ homeassistant: { url: haUrl, token: haToken } }),
+      });
+
+      const data = await fetchAPI('/api/ha/scenes');
+
+      btn.disabled  = false;
+      btn.innerHTML = '<img src="../../assets/icons/home.svg" width="13" height="13" alt="" /> Browse HA Scenes';
+
+      if (!data?.ok) {
+        showToast(`<img src="../../assets/icons/warning.svg" width="14" height="14" alt="" /> ${data?.error || 'Could not fetch scenes'}`, true);
+        return;
+      }
+
+      _haScenes = data.scenes || [];
+
+      if (!_haScenes.length) {
+        showToast('No scenes found in Home Assistant');
+        return;
+      }
+
+      pickerList.innerHTML = _haScenes.map((s, i) => {
+        const added = _scenes.some(x => x.entity_id === s.entity_id);
+        return `
+          <label class="flex items-center gap-3 px-4 py-2.5 border-b border-[var(--border)] last:border-b-0 cursor-pointer transition-colors duration-[150ms] ${added ? 'opacity-50 cursor-default' : 'hover:bg-bg'}">
+            <input type="checkbox" class="w-4 h-4 flex-shrink-0" data-idx="${i}" ${added ? 'checked disabled' : ''} />
+            <div class="min-w-0">
+              <div class="text-[0.88rem] font-semibold text-text truncate">${escHtml(s.name)}</div>
+              <div class="text-[0.75rem] text-muted truncate">${escHtml(s.entity_id)}</div>
+            </div>
+          </label>`;
+      }).join('');
+
+      picker.classList.remove('hidden');
+    }
+
+    function closePicker() {
+      document.getElementById('scene-picker').classList.add('hidden');
+    }
+
+    function addSelectedScenes() {
+      const checkboxes = document.querySelectorAll('#picker-list input[type=checkbox]:not(:disabled):checked');
+      checkboxes.forEach(cb => {
+        const s = _haScenes[parseInt(cb.dataset.idx)];
+        if (s && !_scenes.some(x => x.entity_id === s.entity_id)) {
+          _scenes.push({ name: s.name, entity_id: s.entity_id, icon: '' });
+        }
+      });
+      renderScenes(_scenes);
+      closePicker();
     }
 
     async function save() {

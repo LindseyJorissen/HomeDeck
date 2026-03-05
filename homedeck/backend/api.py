@@ -337,6 +337,28 @@ async def ha_status():
     }
 
 
+@app.get("/api/ha/scenes")
+async def ha_list_scenes():
+    """Fetch all scene entities from Home Assistant."""
+    resp, err = await _ha_request("get", "/api/states")
+    if err:
+        return {"ok": False, "error": err, "scenes": []}
+    if resp.status_code != 200:
+        return {"ok": False, "error": f"HTTP {resp.status_code}", "scenes": []}
+
+    states = resp.json()
+    scenes = [
+        {
+            "entity_id": s["entity_id"],
+            "name": s.get("attributes", {}).get("friendly_name") or s["entity_id"],
+        }
+        for s in states
+        if isinstance(s, dict) and s.get("entity_id", "").startswith("scene.")
+    ]
+    scenes.sort(key=lambda s: s["name"].lower())
+    return {"ok": True, "scenes": scenes}
+
+
 @app.post("/api/ha/scene/{scene_id:path}")
 async def ha_activate_scene(scene_id: str):
     """Activate a Home Assistant scene by entity_id."""

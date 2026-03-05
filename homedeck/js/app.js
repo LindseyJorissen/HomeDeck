@@ -58,7 +58,7 @@ async function refreshWeather() {
 
   if (tempEl) tempEl.textContent = `${data.temperature}°`;
   if (condEl) condEl.textContent = data.condition;
-  if (iconEl) iconEl.innerHTML = `<img src="assets/icons/${data.icon}" width="32" height="32" alt="" />`;
+  if (iconEl) iconEl.innerHTML = `<img src="assets/icons/${data.icon}" style="width:68px;height:68px;object-fit:contain;" alt="" />`;
   if (card)   card.classList.add('card--primary');
 }
 

@@ -99,14 +99,14 @@
       const toC = t => unit === '°F' ? (t - 32) * 5 / 9 : t;
 
       function getTier(c) {
-        if (c < 0)  return { icon: 'wintercoat_gloves.png', label: 'Heavy coat & gloves', bring: 'Heavy coat', tier: 0 };
-        if (c < 5)  return { icon: 'wintercoat.png',        label: 'Coat',                bring: 'Coat',        tier: 1 };
-        if (c < 10) return { icon: 'gloves.png',            label: 'Cold — wear gloves',  bring: 'Gloves',      tier: 2 };
-        if (c < 15) return { icon: 'lightjacket.png',       label: 'Light jacket',        bring: 'Light jacket',tier: 3 };
-        if (c < 20) return { icon: 'longsleeveshirt.png',   label: 'Long sleeves',        bring: 'Long sleeves',tier: 4 };
-        if (c < 25) return { icon: 'tshirt.png',            label: 'T-shirt',             bring: 'T-shirt',     tier: 5 };
-        if (c < 30) return { icon: 'tshirt_shorts.png',     label: 'Shorts & tee',        bring: 'Shorts',      tier: 6 };
-        return             { icon: 'sun_shorts.png',        label: 'Stay cool!',          bring: 'Light layers',tier: 7 };
+        if (c < 0)  return { icon: 'wintercoat_gloves.svg', label: 'Heavy coat & gloves', bring: 'Heavy coat', tier: 0 };
+        if (c < 5)  return { icon: 'wintercoat.svg',        label: 'Coat',                bring: 'Coat',        tier: 1 };
+        if (c < 10) return { icon: 'gloves.svg',            label: 'Cold — wear gloves',  bring: 'Gloves',      tier: 2 };
+        if (c < 15) return { icon: 'lightjacket.svg',       label: 'Light jacket',        bring: 'Light jacket',tier: 3 };
+        if (c < 20) return { icon: 'longsleeveshirt.svg',   label: 'Long sleeves',        bring: 'Long sleeves',tier: 4 };
+        if (c < 25) return { icon: 'tshirt.svg',            label: 'T-shirt',             bring: 'T-shirt',     tier: 5 };
+        if (c < 30) return { icon: 'tshirt_shorts.svg',     label: 'Shorts & tee',        bring: 'Shorts',      tier: 6 };
+        return             { icon: 'sun_shorts.svg',        label: 'Stay cool!',          bring: 'Light layers',tier: 7 };
       }
 
       const toTime = h => { const d = new Date(h.time), hh = d.getHours(); return hh === 0 ? '12am' : hh < 12 ? `${hh}am` : hh === 12 ? '12pm' : `${hh - 12}pm`; };
