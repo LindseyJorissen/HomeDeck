@@ -74,7 +74,7 @@
       </div>
 
       <div class="text-[0.77rem] font-bold uppercase tracking-[0.8px] text-muted mb-3">Hourly Forecast</div>
-      <div class="forecast-scroll flex gap-2.5 overflow-x-auto pb-1.5" id="forecast">
+      <div class="forecast-scroll flex gap-2.5 flex-wrap" id="forecast">
         <div class="text-muted py-5">Loading…</div>
       </div>
 
@@ -120,7 +120,7 @@
         const isNow = i === 0;
 
         return `
-          <div class="forecast-hour bg-surface rounded-sm px-[14px] py-[14px] text-center flex-shrink-0 min-w-[72px] shadow-card border border-border slide-up ${isNow ? 'now' : ''}"
+          <div class="forecast-hour bg-surface rounded-sm px-[14px] py-[14px] text-center flex-1 min-w-[72px] shadow-card border border-border slide-up ${isNow ? 'now' : ''}"
                style="animation-delay:${i*0.04}s">
             <div class="text-[0.75rem] text-muted font-medium">${isNow ? 'Now' : label}</div>
             <div class="my-1.5"><img src="../../assets/icons/${h.icon}" width="24" height="24" alt="" class="mx-auto" /></div>
