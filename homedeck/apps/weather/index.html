@@ -197,17 +197,13 @@
         df.innerHTML = '<div class="text-muted py-5 text-center text-sm">No daily data</div>';
       } else {
         df.innerHTML = data.daily_forecast.map((d, i) => `
-          <div class="flex items-center px-4 py-3 gap-3 ${i < data.daily_forecast.length - 1 ? 'border-b border-border' : ''}">
-            <div class="w-[52px] text-[0.85rem] font-semibold text-text flex-shrink-0">${d.day}</div>
-            <img src="../../assets/icons/${d.icon}" width="22" height="22" alt="" class="flex-shrink-0" />
-            ${d.precip_chance > 0
-              ? `<div class="flex items-center gap-0.5 text-[0.72rem] text-muted w-[38px] flex-shrink-0"><img src="../../assets/icons/humidity.svg" width="12" height="12" alt="" />${d.precip_chance}%</div>`
-              : `<div class="w-[38px] flex-shrink-0"></div>`}
-            <div class="flex-1 flex justify-end items-center gap-2">
-              <span class="text-[0.82rem] text-muted">${d.low}${unit}</span>
-              <div class="flex-1 max-w-[80px] h-1.5 bg-border rounded-full overflow-hidden"></div>
-              <span class="text-[0.9rem] font-bold text-text">${d.high}${unit}</span>
-            </div>
+          <div class="bg-surface rounded-sm px-[14px] py-[14px] text-center flex-1 min-w-[72px] shadow-card border border-border slide-up"
+               style="animation-delay:${i*0.04}s">
+            <div class="text-[0.75rem] text-muted font-medium">${d.day}</div>
+            <div class="my-1.5"><img src="../../assets/icons/${d.icon}" width="32" height="32" alt="" class="mx-auto" /></div>
+            <div class="text-[1rem] font-bold">${d.high}${unit}</div>
+            <div class="text-[0.75rem] text-muted">${d.low}${unit}</div>
+            ${d.precip_chance > 0 ? `<div class="text-[0.7rem] text-muted mt-0.5 flex items-center justify-center gap-0.5"><img src="../../assets/icons/humidity.svg" width="12" height="12" alt="" /> ${d.precip_chance}%</div>` : ''}
           </div>`).join('');
       }
 
