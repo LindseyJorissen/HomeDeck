@@ -54,7 +54,7 @@
 
       <div class="bg-surface rounded-card mb-5 shadow-card border border-border overflow-hidden slide-up mx-6 mt-6" style="animation-delay:0.04s">
         <div class="px-5 py-4 border-b border-border text-[0.78rem] font-extrabold uppercase tracking-[0.8px] text-muted bg-raised flex items-center gap-2">
-          <img src="../../assets/icons/weather.svg" width="20" height="20" alt="" /> Weather
+          <img src="../../assets/icons/cloud_with_sun.svg" width="20" height="20" alt="" /> Weather
         </div>
 
         <div class="px-5 py-[14px] border-b border-border flex flex-col items-start gap-2">
@@ -100,7 +100,7 @@
 
       <div class="bg-surface rounded-card mb-5 shadow-card border border-border overflow-hidden slide-up mx-6" style="animation-delay:0.08s">
         <div class="px-5 py-4 border-b border-border text-[0.78rem] font-extrabold uppercase tracking-[0.8px] text-muted bg-raised flex items-center gap-2">
-          <img src="../../assets/icons/uptime.svg" width="20" height="20" alt="" /> Uptime Monitor
+          <img src="../../assets/icons/hourglass.svg" width="20" height="20" alt="" /> Uptime Monitor
         </div>
         <div id="checks-list"></div>
         <div class="flex gap-2 px-5 py-3 flex-wrap">
@@ -112,7 +112,7 @@
 
       <div class="bg-surface rounded-card mb-5 shadow-card border border-border overflow-hidden slide-up mx-6" style="animation-delay:0.12s">
         <div class="px-5 py-4 border-b border-border text-[0.78rem] font-extrabold uppercase tracking-[0.8px] text-muted bg-raised flex items-center gap-2">
-          <img src="../../assets/icons/home.svg" width="20" height="20" alt="" /> Home Assistant
+          <img src="../../assets/icons/house.svg" width="20" height="20" alt="" /> Home Assistant
         </div>
 
         <div class="px-5 py-[14px] border-b border-border flex flex-col items-start gap-1.5">
@@ -136,7 +136,7 @@
           <div class="flex items-center w-full mb-2 gap-2">
             <div class="text-[0.92rem] font-semibold text-text flex-1">Favourite Scenes</div>
             <button class="btn btn--secondary btn--sm" id="browse-btn" onclick="browseScenes()">
-              <img src="../../assets/icons/home.svg" width="13" height="13" alt="" /> Browse HA Scenes
+              <img src="../../assets/icons/house.svg" width="13" height="13" alt="" /> Browse HA Scenes
             </button>
           </div>
           <div id="scenes-list" class="w-full"></div>
@@ -185,7 +185,7 @@
 
     <div class="sticky bottom-0 bg-surface border-t border-border px-5 py-[14px] flex gap-2.5 shadow-[0_-4px_12px_rgba(0,0,0,0.06)] z-20">
       <button class="btn btn--primary flex-1" onclick="save()">
-        <img src="../../assets/icons/save.svg" width="18" height="18" alt="" /> Save Settings
+        <img src="../../assets/icons/floppy_save.svg" width="18" height="18" alt="" /> Save Settings
       </button>
       <button class="btn btn--secondary" onclick="window.location.href='../../index.html'">Cancel</button>
     </div>
@@ -476,14 +476,13 @@
 
     // SVG filenames — existing ones load immediately, new ones show faded until you drop the file in assets/icons/
     const SCENE_ICONS = [
-      'lightbulb.svg',   'moon.svg',      'sun.svg',      'home.svg',
-      'movie.svg',       'dinner.svg',    'party.svg',    'couch.svg',
-      'music.svg',       'monitor.svg',   'bed.svg',      'workout.svg',
-      'book.svg',        'candle.svg',    'gaming.svg',   'relax.svg',
-      'fire.svg',        'plant.svg',     'shower.svg',   'cooking.svg',
-      'sunrise.svg',     'night.svg',     'snow.svg',     'wind.svg',
-      'cloud-fog.svg',   'thermometer.svg','partly-cloudy.svg','server.svg',
-      'cpu.svg',         'disk.svg',
+      'lightbulb.svg',   'moon.svg',        'sun.svg',           'house.svg',
+      'movie.svg',       'dinner.svg',      'party.svg',         'couch.svg',
+      'music.svg',       'monitor.svg',     'bed.svg',           'workout.svg',
+      'book.svg',        'candle.svg',      'gaming.svg',        'relax.svg',
+      'fire.svg',        'plant.svg',       'shower.svg',        'cooking.svg',
+      'sunrise.svg',     'night.svg',       'snowflake.svg',     'windy.svg',
+      'cloud_fog.svg',   'thermometer.svg', 'cloud_with_sun.svg','cpu.svg',
     ];
 
     function iconHtml(icon, size = 28) {
@@ -538,9 +537,9 @@
       const haToken = document.getElementById('ha-token').value.trim();
 
       if (!haUrl || !haToken) {
-        showToast('<img src="../../assets/icons/warning.svg" width="14" height="14" alt="" /> Enter HA URL and token first', true);
+        showToast('<img src="../../assets/icons/x_mark.svg" width="14" height="14" alt="" /> Enter HA URL and token first', true);
         btn.disabled    = false;
-        btn.innerHTML   = '<img src="../../assets/icons/home.svg" width="13" height="13" alt="" /> Browse HA Scenes';
+        btn.innerHTML   = '<img src="../../assets/icons/house.svg" width="13" height="13" alt="" /> Browse HA Scenes';
         return;
       }
 
@@ -554,10 +553,10 @@
       const data = await fetchAPI('/api/ha/scenes');
 
       btn.disabled  = false;
-      btn.innerHTML = '<img src="../../assets/icons/home.svg" width="13" height="13" alt="" /> Browse HA Scenes';
+      btn.innerHTML = '<img src="../../assets/icons/house.svg" width="13" height="13" alt="" /> Browse HA Scenes';
 
       if (!data?.ok) {
-        showToast(`<img src="../../assets/icons/warning.svg" width="14" height="14" alt="" /> ${data?.error || 'Could not fetch scenes'}`, true);
+        showToast(`<img src="../../assets/icons/x_mark.svg" width="14" height="14" alt="" /> ${data?.error || 'Could not fetch scenes'}`, true);
         return;
       }
 
@@ -625,10 +624,10 @@
       });
 
       if (result?.ok) {
-        showToast('<img src="../../assets/icons/check.svg" width="14" height="14" alt="" /> Settings saved!');
+        showToast('<img src="../../assets/icons/check_mark.svg" width="14" height="14" alt="" /> Settings saved!');
         setTimeout(() => window.location.href = '../../index.html', 1400);
       } else {
-        showToast('<img src="../../assets/icons/warning.svg" width="14" height="14" alt="" /> Failed to save', true);
+        showToast('<img src="../../assets/icons/x_mark.svg" width="14" height="14" alt="" /> Failed to save', true);
       }
     }
 

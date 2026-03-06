@@ -63,7 +63,7 @@ async function refreshWeather() {
 }
 
 async function refreshUptime() {
-  const data = await fetchAPI('/api/uptime');
+  const data    = await fetchAPI('/api/uptime');
   const valueEl = document.getElementById('uptime-value');
   const subEl   = document.getElementById('uptime-sub');
   const card    = document.getElementById('card-uptime');

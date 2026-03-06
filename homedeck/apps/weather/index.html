@@ -39,17 +39,15 @@
     <header class="flex items-center px-6 py-[14px] bg-surface border-b border-border shadow-app gap-[14px] flex-shrink-0 z-10">
       <button class="w-11 h-11 min-w-[44px] border-none bg-bg rounded-sm cursor-pointer flex items-center justify-center text-[1.4rem] text-text transition-all duration-[180ms] hover:bg-border active:scale-[0.92] flex-shrink-0"
               onclick="window.location.href='../../index.html'">←</button>
-      <img src="../../assets/icons/weather.svg" width="24" height="24" />
+      <img src="../../assets/icons/cloud_with_sun.svg" width="24" height="24" />
       <span class="text-[1.45rem] font-bold text-text"> Weather</span>
       <button class="btn btn--secondary btn--sm ml-auto" onclick="load()" id="refresh-btn">↻</button>
     </header>
 
     <div class="flex-1 overflow-y-auto p-6">
 
-      <div id="hero" class="bg-surface rounded-card px-7 py-8 text-text text-center mb-[18px] border border-border shadow-card slide-up">
-        <div id="w-icon" class="text-[5rem] leading-none ">
-          <img src="../../assets/icons/thermometer.svg" width="64" height="64" alt="" />
-        </div>
+      <div id="hero" class="bg-surface rounded-card px-7 py-5 text-text text-center mb-[18px] border border-border shadow-card slide-up">
+        <div id="w-icon" class="text-[5rem] leading-none "></div>
         <div id="w-temp" class="text-[5.5rem] font-bold leading-none mt-1.5">--°</div>
         <div id="w-cond" class="text-[1.4rem] text-muted mt-1">Loading weather…</div>
         <div id="w-loc" class="text-[0.9rem] text-muted mt-1.5"></div>
@@ -70,15 +68,19 @@
           </div>
         </div>
         <div class="flex flex-col gap-3">
-          <div class="bg-surface rounded-sm px-2 py-2.5 text-center shadow-card border border-border slide-up flex-1 flex flex-col items-center justify-center">
-            <div><img src="../../assets/icons/humidity.svg" width="18" height="18" alt="" class="mx-auto" /></div>
-            <div id="w-hum" class="text-[1rem] font-bold mt-1">--%</div>
-            <div class="text-[0.65rem] text-muted uppercase tracking-[0.4px]">Humidity</div>
+          <div class="bg-surface rounded-sm px-3 py-6 shadow-card border border-border slide-up flex-1 flex items-center justify-center gap-3">
+            <img src="../../assets/icons/humidity.svg" width="42" height="42" alt="" class="flex-shrink-0" />
+            <div>
+              <div id="w-hum" class="text-[1rem] font-bold leading-none">--%</div>
+              <div class="text-[0.65rem] text-muted uppercase tracking-[0.4px] mt-0.5">Humidity</div>
+            </div>
           </div>
-          <div class="bg-surface rounded-sm px-2 py-2.5 text-center shadow-card border border-border slide-up flex-1 flex flex-col items-center justify-center">
-            <div><img src="../../assets/icons/wind.svg" width="18" height="18" alt="" class="mx-auto" /></div>
-            <div id="w-wind" class="text-[1rem] font-bold mt-1">--</div>
-            <div class="text-[0.65rem] text-muted uppercase tracking-[0.4px]">Wind</div>
+          <div class="bg-surface rounded-sm px-3 py-6 shadow-card border border-border slide-up flex-1 flex items-center justify-center gap-3">
+            <img src="../../assets/icons/windy.svg" width="42" height="42" alt="" class="flex-shrink-0" />
+            <div>
+              <div id="w-wind" class="text-[1rem] font-bold leading-none">--</div>
+              <div class="text-[0.65rem] text-muted uppercase tracking-[0.4px] mt-0.5">Wind</div>
+            </div>
           </div>
         </div>
       </div>
@@ -89,8 +91,8 @@
       </div>
 
       <div class="text-[0.77rem] font-bold uppercase tracking-[0.8px] text-muted mb-3 mt-6">7-Day Forecast</div>
-      <div class="bg-surface rounded-card border border-border shadow-card overflow-hidden slide-up" id="daily-forecast">
-        <div class="text-muted py-5 text-center text-sm">Loading…</div>
+      <div class="flex gap-2.5 flex-wrap" id="daily-forecast">
+        <div class="text-muted py-5">Loading…</div>
       </div>
 
       <div class="text-[0.75rem] text-muted text-center mt-3 pb-2" id="last-updated"></div>
@@ -104,14 +106,14 @@
       const toC = t => unit === '°F' ? (t - 32) * 5 / 9 : t;
 
       function getTier(c) {
-        if (c < 0)  return { icon: 'wintercoat_gloves.svg', label: 'Heavy coat & gloves', bring: 'Heavy coat', tier: 0 };
-        if (c < 5)  return { icon: 'wintercoat.svg',        label: 'Coat',                bring: 'Coat',        tier: 1 };
-        if (c < 10) return { icon: 'gloves.svg',            label: 'Cold — wear gloves',  bring: 'Gloves',      tier: 2 };
-        if (c < 15) return { icon: 'lightjacket.svg',       label: 'Light jacket',        bring: 'Light jacket',tier: 3 };
-        if (c < 20) return { icon: 'longsleeveshirt.svg',   label: 'Long sleeves',        bring: 'Long sleeves',tier: 4 };
-        if (c < 25) return { icon: 'tshirt.svg',            label: 'T-shirt',             bring: 'T-shirt',     tier: 5 };
-        if (c < 30) return { icon: 'tshirt_shorts.svg',     label: 'Shorts & tee',        bring: 'Shorts',      tier: 6 };
-        return             { icon: 'sun_shorts.svg',        label: 'Stay cool!',          bring: 'Light layers',tier: 7 };
+        if (c < 0)  return { icon: 'winterjacket_and_glove.svg', label: 'Heavy coat & gloves', bring: 'Heavy coat', tier: 0 };
+        if (c < 5)  return { icon: 'winterjacket.svg',           label: 'Coat',                bring: 'Coat',        tier: 1 };
+        if (c < 10) return { icon: 'glove.svg',                  label: 'Cold — wear gloves',  bring: 'Gloves',      tier: 2 };
+        if (c < 15) return { icon: 'lightjacket.svg',            label: 'Light jacket',        bring: 'Light jacket',tier: 3 };
+        if (c < 20) return { icon: 'longsleeve.svg',             label: 'Long sleeves',        bring: 'Long sleeves',tier: 4 };
+        if (c < 25) return { icon: 'tshirt.svg',                 label: 'T-shirt',             bring: 'T-shirt',     tier: 5 };
+        if (c < 30) return { icon: 'tshirt_and_shorts.svg',      label: 'Shorts & tee',        bring: 'Shorts',      tier: 6 };
+        return             { icon: 'sun_and_shorts.svg',         label: 'Stay cool!',          bring: 'Light layers',tier: 7 };
       }
 
       const toTime = h => { const d = new Date(h.time), hh = d.getHours(); return hh === 0 ? '12am' : hh < 12 ? `${hh}am` : hh === 12 ? '12pm' : `${hh - 12}pm`; };
@@ -144,7 +146,7 @@
 
       if (!data || data.error) {
         document.getElementById('w-cond').textContent = 'Weather unavailable';
-        document.getElementById('w-icon').innerHTML = '<img src="../../assets/icons/warning.svg" width="64" height="64" alt="" />';
+        document.getElementById('w-icon').innerHTML = '<img src="../../assets/icons/x_mark.svg" width="64" height="64" alt="" />';
         return;
       }
 

@@ -58,28 +58,28 @@ def load_config() -> dict:
 WMO: dict[int, tuple[str, str]] = {
     0:  ("Clear Sky",        "sun.svg"),
     1:  ("Mostly Clear",     "sun.svg"),
-    2:  ("Partly Cloudy",    "partly-cloudy.svg"),
-    3:  ("Overcast",         "cloudy.svg"),
-    45: ("Foggy",            "cloud-fog.svg"),
-    48: ("Icy Fog",          "cloud-fog.svg"),
-    51: ("Light Drizzle",    "drizzle.svg"),
-    53: ("Drizzle",          "drizzle.svg"),
-    55: ("Heavy Drizzle",    "rain.svg"),
-    61: ("Light Rain",       "rain.svg"),
-    63: ("Rain",             "rain.svg"),
-    65: ("Heavy Rain",       "rain.svg"),
-    71: ("Light Snow",       "snow.svg"),
-    73: ("Snow",             "snow.svg"),
-    75: ("Heavy Snow",       "snow.svg"),
-    77: ("Snow Grains",      "snow.svg"),
-    80: ("Rain Showers",     "drizzle.svg"),
-    81: ("Rain Showers",     "rain.svg"),
-    82: ("Heavy Showers",    "thunderstorm.svg"),
-    85: ("Snow Showers",     "snow.svg"),
-    86: ("Heavy Snow",       "snow.svg"),
-    95: ("Thunderstorm",     "thunderstorm.svg"),
-    96: ("Thunderstorm",     "thunderstorm.svg"),
-    99: ("Thunderstorm",     "thunderstorm.svg"),
+    2:  ("Partly Cloudy",    "little_clouds.svg"),
+    3:  ("Overcast",         "clouds.svg"),
+    45: ("Foggy",            "cloud_fog.svg"),
+    48: ("Icy Fog",          "cloud_fog.svg"),
+    51: ("Light Drizzle",    "cloud_drizzle.svg"),
+    53: ("Drizzle",          "cloud_drizzle.svg"),
+    55: ("Heavy Drizzle",    "cloud_rain.svg"),
+    61: ("Light Rain",       "cloud_rain.svg"),
+    63: ("Rain",             "cloud_rain.svg"),
+    65: ("Heavy Rain",       "cloud_rain.svg"),
+    71: ("Light Snow",       "snowflake.svg"),
+    73: ("Snow",             "snowflake.svg"),
+    75: ("Heavy Snow",       "snowflake.svg"),
+    77: ("Snow Grains",      "snowflake.svg"),
+    80: ("Rain Showers",     "cloud_drizzle.svg"),
+    81: ("Rain Showers",     "cloud_rain.svg"),
+    82: ("Heavy Showers",    "cloud_lightningbolt.svg"),
+    85: ("Snow Showers",     "snowflake.svg"),
+    86: ("Heavy Snow",       "snowflake.svg"),
+    95: ("Thunderstorm",     "cloud_lightningbolt.svg"),
+    96: ("Thunderstorm",     "cloud_two_lightningbolts.svg"),
+    99: ("Thunderstorm",     "cloud_two_lightningbolts.svg"),
 }
 
 def _format_uptime(seconds: float) -> str:
@@ -244,9 +244,11 @@ async def get_weather():
     cur  = raw.get("current", {})
     code   = cur.get("weather_code", 0)
     is_day = cur.get("is_day", 1)
-    condition, icon = WMO.get(code, ("Unknown", "weather.svg"))
+    condition, icon = WMO.get(code, ("Unknown", "cloud_with_sun.svg"))
     if not is_day and icon == "sun.svg":
         icon = "moon.svg"
+    elif not is_day and icon == "little_clouds.svg":
+        icon = "moon_clouds.svg"
 
     hourly  = raw.get("hourly", {})
     h_times  = hourly.get("time", [])
@@ -263,9 +265,12 @@ async def get_weather():
 
     forecast = []
     for i in range(start, min(start + 8, len(h_times))):
-        _, h_icon = WMO.get(h_codes[i] if i < len(h_codes) else 0, ("", "weather.svg"))
-        if (i < len(h_isday) and not h_isday[i]) and h_icon == "sun.svg":
-            h_icon = "moon.svg"
+        _, h_icon = WMO.get(h_codes[i] if i < len(h_codes) else 0, ("", "cloud_with_sun.svg"))
+        if i < len(h_isday) and not h_isday[i]:
+            if h_icon == "sun.svg":
+                h_icon = "moon.svg"
+            elif h_icon == "little_clouds.svg":
+                h_icon = "moon_clouds.svg"
         forecast.append({
             "time":         h_times[i],
             "temp":         round(h_temps[i])  if i < len(h_temps)  else None,
@@ -285,7 +290,7 @@ async def get_weather():
 
     daily_forecast = []
     for i, dt_str in enumerate(d_times):
-        _, d_icon = WMO.get(d_codes[i] if i < len(d_codes) else 0, ("", "weather.svg"))
+        _, d_icon = WMO.get(d_codes[i] if i < len(d_codes) else 0, ("", "cloud_with_sun.svg"))
         day_dt = datetime.strptime(dt_str, "%Y-%m-%d")
         label  = "Today" if dt_str == today_str else DAY_NAMES[day_dt.weekday()]
         daily_forecast.append({

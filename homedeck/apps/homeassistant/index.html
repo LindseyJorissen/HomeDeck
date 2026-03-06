@@ -40,7 +40,7 @@
       <button class="w-11 h-11 min-w-[44px] border-none bg-bg rounded-sm cursor-pointer flex items-center justify-center text-[1.4rem] text-text transition-all duration-[180ms] hover:bg-border active:scale-[0.92] flex-shrink-0"
               onclick="window.location.href='../../index.html'">←</button>
       <span class="text-[1.45rem] font-bold text-text flex items-center gap-2">
-        <img src="../../assets/icons/home.svg" width="20" height="20" alt="" /> Home Assistant
+        <img src="../../assets/icons/house.svg" width="20" height="20" alt="" /> Home Assistant
       </span>
       <button class="btn btn--secondary btn--sm ml-auto" onclick="load()" id="refresh-btn">↻</button>
     </header>
@@ -76,7 +76,7 @@
           </div>`;
         container.innerHTML = `
           <div class="bg-surface rounded-card px-6 py-8 text-center shadow-card border border-border">
-            <div class="text-[3rem]"><img src="../../assets/icons/home.svg" width="48" height="48" alt="" class="mx-auto" /></div>
+            <div class="text-[3rem]"><img src="../../assets/icons/house.svg" width="48" height="48" alt="" class="mx-auto" /></div>
             <div class="text-[1.2rem] font-bold mt-3 mb-1.5">Connect Home Assistant</div>
             <div class="text-[0.88rem] text-muted mb-5 leading-[1.5]">
               Enter your Home Assistant URL and a Long-Lived Access Token in Settings.<br>
@@ -92,12 +92,12 @@
       if (data.connected) {
         banner.innerHTML = `
           <div class="ha-banner ha-banner--ok flex items-center gap-2.5 px-[18px] py-3 rounded-sm mb-[22px] text-[0.9rem] font-semibold slide-up">
-            <img src="../../assets/icons/check.svg" width="16" height="16" alt="" /> Connected to Home Assistant
+            <img src="../../assets/icons/check_mark.svg" width="16" height="16" alt="" /> Connected to Home Assistant
           </div>`;
       } else {
         banner.innerHTML = `
           <div class="ha-banner ha-banner--err flex items-center gap-2.5 px-[18px] py-3 rounded-sm mb-[22px] text-[0.9rem] font-semibold slide-up">
-            <img src="../../assets/icons/warning.svg" width="16" height="16" alt="" /> Could not reach Home Assistant — ${data.error || 'check your URL and token'}
+            <img src="../../assets/icons/x_mark.svg" width="16" height="16" alt="" /> Could not reach Home Assistant — ${data.error || 'check your URL and token'}
           </div>`;
       }
 
@@ -145,14 +145,14 @@
 
       if (result?.ok) {
         card.classList.add('success');
-        fb.innerHTML = '<img src="../../assets/icons/check.svg" width="16" height="16" alt="" />';
+        fb.innerHTML = '<img src="../../assets/icons/check_mark.svg" width="16" height="16" alt="" />';
         setTimeout(() => {
           card.classList.remove('success');
           fb.textContent = '';
         }, 1800);
       } else {
         card.classList.add('error');
-        fb.innerHTML = '<img src="../../assets/icons/warning.svg" width="16" height="16" alt="" />';
+        fb.innerHTML = '<img src="../../assets/icons/x_mark.svg" width="16" height="16" alt="" />';
         setTimeout(() => {
           card.classList.remove('error');
           fb.textContent = '';
