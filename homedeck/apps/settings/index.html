@@ -152,17 +152,17 @@
           </div>
 
           <!-- Manual add fallback -->
-          <div class="flex gap-2 pt-2.5 pb-1 flex-wrap w-full">
+          <div class="flex gap-2 pt-2.5 pb-2 flex-wrap w-full">
             <div class="relative flex-shrink-0" id="icon-picker-wrap">
               <button type="button"
-                      class="input flex items-center justify-center text-[1.3rem] cursor-pointer select-none"
-                      id="icon-btn" style="width:52px;padding:0"
-                      onclick="toggleIconPicker(event)"><img src="../../assets/icons/lightbulb.svg" width="22" height="22" alt="" /></button>
+                      class="input flex items-center justify-center cursor-pointer select-none"
+                      id="icon-btn" style="width:52px"
+                      onclick="toggleIconPicker(event)"><img src="../../assets/icons/lightbulb.svg" width="26" height="30" alt="" /></button>
               <input type="hidden" id="new-scene-icon" value="" />
               <div id="icon-dropdown"
-                   class="hidden absolute bottom-[calc(100%+6px)] left-0 bg-surface border-[1.5px] border-primary rounded-xs shadow-hover z-50 p-1.5"
-                   style="width:214px">
-                <div id="icon-grid" class="grid grid-cols-6 gap-0.5"></div>
+                   class="hidden absolute bottom-[calc(100%+6px)] left-0 bg-surface border-[1.5px] border-primary rounded-xs shadow-hover z-50 p-2"
+                   style="width:272px">
+                <div id="icon-grid" class="grid grid-cols-4 gap-1"></div>
               </div>
             </div>
             <input class="input" id="new-scene-name"  placeholder="Scene name" style="width:130px;flex-shrink:0" />
@@ -464,7 +464,7 @@
       _scenes = [..._scenes, { icon, name, entity_id: id }];
       renderScenes(_scenes);
       document.getElementById('new-scene-icon').value  = '';
-      document.getElementById('icon-btn').innerHTML    = '<img src="../../assets/icons/lightbulb.svg" width="22" height="22" alt="" />';
+      document.getElementById('icon-btn').innerHTML    = '<img src="../../assets/icons/lightbulb.svg" width="26" height="26" alt="" />';
       document.getElementById('new-scene-name').value = '';
       document.getElementById('new-scene-id').value   = '';
     }
@@ -477,12 +477,11 @@
     // SVG filenames — existing ones load immediately, new ones show faded until you drop the file in assets/icons/
     const SCENE_ICONS = [
       'lightbulb.svg',   'moon.svg',        'sun.svg',           'house.svg',
-      'movie.svg',       'dinner.svg',      'party.svg',         'couch.svg',
-      'music.svg',       'monitor.svg',     'bed.svg',           'workout.svg',
-      'book.svg',        'candle.svg',      'gaming.svg',        'relax.svg',
-      'fire.svg',        'plant.svg',       'shower.svg',        'cooking.svg',
-      'sunrise.svg',     'night.svg',       'snowflake.svg',     'windy.svg',
-      'cloud_fog.svg',   'thermometer.svg', 'cloud_with_sun.svg','cpu.svg',
+      'movie.svg',       'music.svg',       'couch.svg',         'eu_socket.svg',   
+      'monitor.svg',     'bed.svg',         'book.svg',          'candle.svg',      
+      'gaming.svg',      'plant.svg',       'shower.svg',        'cooking.svg',
+      'sunrise.svg',
+      
     ];
 
     function iconHtml(icon, size = 28) {
@@ -493,9 +492,9 @@
 
     document.getElementById('icon-grid').innerHTML = SCENE_ICONS.map(ic =>
       `<button type="button"
-               class="w-8 h-8 rounded-xs hover:bg-bg transition-colors duration-[120ms] border-none bg-transparent cursor-pointer flex items-center justify-center"
+               class="w-[62px] h-[62px] rounded-xs hover:bg-bg transition-colors duration-[120ms] border-none bg-transparent cursor-pointer flex items-center justify-center"
                onclick="selectIcon('${ic}')">
-         <img src="../../assets/icons/${ic}" width="20" height="20" alt="" onerror="this.style.opacity='0.2'" />
+         <img src="../../assets/icons/${ic}" width="36" height="36" alt="" onerror="this.style.opacity='0.2'" />
        </button>`
     ).join('');
 
@@ -505,7 +504,7 @@
     }
 
     function selectIcon(icon) {
-      document.getElementById('icon-btn').innerHTML = `<img src="../../assets/icons/${icon}" width="22" height="22" alt="" />`;
+      document.getElementById('icon-btn').innerHTML = `<img src="../../assets/icons/${icon}" width="26" height="26" alt="" />`;
       document.getElementById('new-scene-icon').value = icon;
       document.getElementById('icon-dropdown').classList.add('hidden');
     }
