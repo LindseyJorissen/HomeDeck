@@ -47,14 +47,17 @@
     <div class="flex-1 overflow-y-auto p-6">
 
       <div class="bg-surface rounded-sm p-5 mb-[14px] shadow-card border border-border slide-up" id="cpu-card" style="animation-delay:0.05s">
-        <div class="flex justify-between items-start mb-[14px]">
-          <div>
-            <div class="text-[1rem] font-semibold flex items-center gap-1">
-              <img src="../../assets/icons/cpu.svg" width="16" height="16" alt="" /> CPU
+        <div class="flex items-center gap-4 mb-[14px]">
+          <img src="../../assets/icons/cpu.svg" width="32" height="32" alt="" class="flex-shrink-0" />
+          <div class="flex-1 min-w-0">
+            <div class="flex justify-between items-start">
+              <div>
+                <div class="text-[1rem] font-semibold">CPU</div>
+                <div class="inline-flex items-center gap-1 text-[0.82rem] text-muted mt-1" id="cpu-temp"></div>
+              </div>
+              <div class="text-[2.2rem] font-bold leading-none" id="cpu-pct">--%</div>
             </div>
-            <div class="inline-flex items-center gap-1 text-[0.82rem] text-muted mt-1" id="cpu-temp"></div>
           </div>
-          <div class="text-[2.2rem] font-bold leading-none" id="cpu-pct">--%</div>
         </div>
         <div class="w-full h-2 bg-bg rounded-full overflow-hidden">
           <div class="progress-fill progress-fill--primary" id="cpu-bar" style="width:0%"></div>
@@ -62,14 +65,17 @@
       </div>
 
       <div class="bg-surface rounded-sm p-5 mb-[14px] shadow-card border border-border slide-up" style="animation-delay:0.10s">
-        <div class="flex justify-between items-start mb-[14px]">
-          <div>
-            <div class="text-[1rem] font-semibold flex items-center gap-1">
-              <img src="../../assets/icons/monitor.svg" width="16" height="16" alt="" /> Memory
+        <div class="flex items-center gap-4 mb-[14px]">
+          <img src="../../assets/icons/monitor.svg" width="32" height="32" alt="" class="flex-shrink-0" />
+          <div class="flex-1 min-w-0">
+            <div class="flex justify-between items-start">
+              <div>
+                <div class="text-[1rem] font-semibold">Memory</div>
+                <div class="text-[0.82rem] text-muted mt-0.5" id="ram-detail">-- GB used of -- GB</div>
+              </div>
+              <div class="text-[2.2rem] font-bold leading-none" id="ram-pct">--%</div>
             </div>
-            <div class="text-[0.82rem] text-muted mt-0.5" id="ram-detail">-- GB used of -- GB</div>
           </div>
-          <div class="text-[2.2rem] font-bold leading-none" id="ram-pct">--%</div>
         </div>
         <div class="w-full h-2 bg-bg rounded-full overflow-hidden">
           <div class="progress-fill progress-fill--primary" id="ram-bar" style="width:0%"></div>
@@ -77,14 +83,17 @@
       </div>
 
       <div class="bg-surface rounded-sm p-5 mb-[14px] shadow-card border border-border slide-up" style="animation-delay:0.15s">
-        <div class="flex justify-between items-start mb-[14px]">
-          <div>
-            <div class="text-[1rem] font-semibold flex items-center gap-1">
-              <img src="../../assets/icons/hardrive.svg" width="16" height="16" alt="" /> Disk
+        <div class="flex items-center gap-4 mb-[14px]">
+          <img src="../../assets/icons/hardrive.svg" width="32" height="32" alt="" class="flex-shrink-0" />
+          <div class="flex-1 min-w-0">
+            <div class="flex justify-between items-start">
+              <div>
+                <div class="text-[1rem] font-semibold">Disk</div>
+                <div class="text-[0.82rem] text-muted mt-0.5" id="disk-detail">-- GB used of -- GB</div>
+              </div>
+              <div class="text-[2.2rem] font-bold leading-none" id="disk-pct">--%</div>
             </div>
-            <div class="text-[0.82rem] text-muted mt-0.5" id="disk-detail">-- GB used of -- GB</div>
           </div>
-          <div class="text-[2.2rem] font-bold leading-none" id="disk-pct">--%</div>
         </div>
         <div class="w-full h-2 bg-bg rounded-full overflow-hidden">
           <div class="progress-fill progress-fill--success" id="disk-bar" style="width:0%"></div>
@@ -92,11 +101,14 @@
       </div>
 
       <div class="bg-surface rounded-sm p-5 mb-[14px] shadow-card border border-border slide-up" style="animation-delay:0.20s">
-        <div class="flex justify-between items-start">
-          <div class="text-[1rem] font-semibold flex items-center gap-1">
-            <img src="../../assets/icons/refresh.svg" width="16" height="16" alt="" /> Load Average
+        <div class="flex items-center gap-4">
+          <img src="../../assets/icons/refresh.svg" width="32" height="32" alt="" class="flex-shrink-0" />
+          <div class="flex-1 min-w-0">
+            <div class="flex justify-between items-center">
+              <div class="text-[1rem] font-semibold">Load Average</div>
+              <div class="text-[0.82rem] text-muted" id="load-detail">– / – / –</div>
+            </div>
           </div>
-          <div class="text-[0.82rem] text-muted" id="load-detail">– / – / –</div>
         </div>
       </div>
 

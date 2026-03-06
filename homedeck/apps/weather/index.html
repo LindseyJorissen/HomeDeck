@@ -188,7 +188,7 @@
             <div class="text-[0.75rem] text-muted font-medium">${isNow ? 'Now' : label}</div>
             <div class="my-1.5"><img src="../../assets/icons/${h.icon}" width="24" height="24" alt="" class="mx-auto" /></div>
             <div class="text-[1rem] font-bold">${h.temp}${unit}</div>
-            ${h.precip_chance > 0 ? `<div class="text-[0.7rem] text-muted mt-0.5 flex items-center justify-center gap-0.5"><img src="../../assets/icons/humidity.svg" width="12" height="12" alt="" /> ${h.precip_chance}%</div>` : ''}
+            ${h.precip_chance > 0 ? `<div class="text-[0.7rem] text-muted mt-0.5 flex items-center justify-center gap-0.5"><img src="../../assets/icons/umbrella.svg" width="12" height="12" alt="" /> ${h.precip_chance}%</div>` : ''}
           </div>`;
       }).join('');
 
@@ -203,7 +203,7 @@
             <div class="my-1.5"><img src="../../assets/icons/${d.icon}" width="32" height="32" alt="" class="mx-auto" /></div>
             <div class="text-[1rem] font-bold">${d.high}${unit}</div>
             <div class="text-[0.75rem] text-muted">${d.low}${unit}</div>
-            ${d.precip_chance > 0 ? `<div class="text-[0.7rem] text-muted mt-0.5 flex items-center justify-center gap-0.5"><img src="../../assets/icons/humidity.svg" width="12" height="12" alt="" /> ${d.precip_chance}%</div>` : ''}
+            ${d.precip_chance > 0 ? `<div class="text-[0.7rem] text-muted mt-0.5 flex items-center justify-center gap-0.5"><img src="../../assets/icons/umbrella.svg" width="12" height="12" alt="" /> ${d.precip_chance}%</div>` : ''}
           </div>`).join('');
       }
 
