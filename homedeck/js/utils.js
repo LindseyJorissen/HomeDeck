@@ -54,20 +54,37 @@ function clamp(val, min, max) {
   return Math.min(Math.max(val, min), max);
 }
 
-// Touch scroll for Pi touchscreen (Chromium on Wayland doesn't auto-scroll)
+// Scroll for Pi touchscreen — handles both real touch events and
+// pointer/mouse-mode touchscreens (common with Pi DSI/USB touch panels)
 document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.overflow-y-auto').forEach(el => {
-    let startY = 0, startTop = 0, dragging = false;
+    let startY = 0, startTop = 0, active = false, didScroll = false;
+
+    // Touch events (proper touch device)
     el.addEventListener('touchstart', e => {
-      startY   = e.touches[0].clientY;
-      startTop = el.scrollTop;
-      dragging = true;
+      startY = e.touches[0].clientY; startTop = el.scrollTop; active = true; didScroll = false;
     }, { passive: true });
     el.addEventListener('touchmove', e => {
-      if (!dragging) return;
-      el.scrollTop = startTop - (e.touches[0].clientY - startY);
+      if (!active) return;
+      const dy = startY - e.touches[0].clientY;
+      if (Math.abs(dy) > 3) { el.scrollTop = startTop + dy; didScroll = true; }
     }, { passive: true });
-    el.addEventListener('touchend', () => { dragging = false; }, { passive: true });
+    el.addEventListener('touchend', () => { active = false; }, { passive: true });
+
+    // Mouse drag events (touchscreen acting as pointer/mouse)
+    el.addEventListener('mousedown', e => {
+      startY = e.clientY; startTop = el.scrollTop; active = true; didScroll = false;
+    });
+    el.addEventListener('mousemove', e => {
+      if (!active) return;
+      const dy = startY - e.clientY;
+      if (Math.abs(dy) > 5) { el.scrollTop = startTop + dy; didScroll = true; }
+    });
+    el.addEventListener('mouseup', e => {
+      if (didScroll) e.stopPropagation();
+      active = false;
+    });
+    el.addEventListener('mouseleave', () => { active = false; });
   });
 });
 
