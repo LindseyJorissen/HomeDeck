@@ -484,6 +484,11 @@ async def keyboard_show():
     subprocess.run(['/usr/bin/pkill', 'matchbox-keyboard'], capture_output=True)
     env = {**os.environ, 'DISPLAY': ':0'}
     subprocess.Popen(['/usr/bin/matchbox-keyboard'], env=env)
+    await asyncio.sleep(0.4)
+    subprocess.run(
+        ['/usr/bin/xdotool', 'search', '--name', 'Keyboard', 'windowmove', '0', '288'],
+        env=env, capture_output=True
+    )
     return {"ok": True}
 
 
