@@ -15,4 +15,5 @@ chromium --kiosk \
   --disable-infobars \
   --no-first-run \
   --disable-session-crashed-bubble \
+  --disk-cache-size=1 \
   http://localhost:8000
