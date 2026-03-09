@@ -100,17 +100,6 @@
         </div>
       </div>
 
-      <div class="bg-surface rounded-sm p-5 mb-[14px] shadow-card border border-border slide-up" style="animation-delay:0.20s">
-        <div class="flex items-center gap-4">
-          <img src="../../assets/icons/refresh.svg" width="32" height="32" alt="" class="flex-shrink-0" />
-          <div class="flex-1 min-w-0">
-            <div class="flex justify-between items-center">
-              <div class="text-[1rem] font-semibold">Load Average</div>
-              <div class="text-[0.82rem] text-muted" id="load-detail">– / – / –</div>
-            </div>
-          </div>
-        </div>
-      </div>
 
       <div class="text-[0.77rem] font-bold uppercase tracking-[0.8px] text-muted mb-3 mt-6">System Info</div>
       <div class="grid grid-cols-2 gap-3">
@@ -176,10 +165,6 @@
         document.getElementById('disk-detail').textContent = `${sys.disk_used_gb} GB / ${sys.disk_total_gb} GB`;
         applyBar('disk-bar', sys.disk_percent);
 
-        if (sys.load_avg) {
-          document.getElementById('load-detail').textContent =
-            `${sys.load_avg['1m']} / ${sys.load_avg['5m']} / ${sys.load_avg['15m']}`;
-        }
 
         document.getElementById('info-host').textContent   = sys.hostname  || '-';
         document.getElementById('info-uptime').textContent = sys.uptime    || '-';

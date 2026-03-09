@@ -3,6 +3,7 @@
 import asyncio
 import json
 import socket
+import subprocess
 import time
 from datetime import datetime
 from pathlib import Path
@@ -459,6 +460,20 @@ async def save_config(body: dict):
     with open(CONFIG_PATH, "w") as f:
         json.dump(current, f, indent=2)
 
+    return {"ok": True}
+
+
+@app.get("/api/keyboard/show")
+async def keyboard_show():
+    """Send SIGUSR2 to wvkbd to show the on-screen keyboard."""
+    subprocess.run(['pkill', '-USR2', 'wvkbd-mobintl'], capture_output=True)
+    return {"ok": True}
+
+
+@app.get("/api/keyboard/hide")
+async def keyboard_hide():
+    """Send SIGUSR1 to wvkbd to hide the on-screen keyboard."""
+    subprocess.run(['pkill', '-USR1', 'wvkbd-mobintl'], capture_output=True)
     return {"ok": True}
 
 

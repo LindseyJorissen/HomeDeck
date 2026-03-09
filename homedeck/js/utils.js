@@ -86,6 +86,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     el.addEventListener('mouseleave', () => { active = false; });
   });
+
+  // Virtual keyboard (wvkbd) — show on input focus, hide on blur
+  document.addEventListener('focusin', e => {
+    if (e.target.matches('input, textarea, select')) fetch('/api/keyboard/show').catch(() => {});
+  });
+  document.addEventListener('focusout', e => {
+    if (e.target.matches('input, textarea, select')) fetch('/api/keyboard/hide').catch(() => {});
+  });
 });
 
 function uid() {
