@@ -481,7 +481,7 @@ def _wayland_env() -> dict:
 @app.get("/api/keyboard/show")
 async def keyboard_show():
     """Launch matchbox-keyboard on the kiosk display."""
-    subprocess.run(['/usr/bin/pkill', 'matchbox-keyboard'], capture_output=True)
+    subprocess.run(['/usr/bin/pkill', '-f', 'matchbox-keyboard'], capture_output=True)
     env = {**os.environ, 'DISPLAY': ':0'}
     subprocess.Popen(['/usr/bin/matchbox-keyboard'], env=env)
     await asyncio.sleep(0.4)
@@ -495,7 +495,7 @@ async def keyboard_show():
 @app.get("/api/keyboard/hide")
 async def keyboard_hide():
     """Kill matchbox-keyboard."""
-    subprocess.run(['/usr/bin/pkill', 'matchbox-keyboard'], capture_output=True)
+    subprocess.run(['/usr/bin/pkill', '-f', 'matchbox-keyboard'], capture_output=True)
     return {"ok": True}
 
 
