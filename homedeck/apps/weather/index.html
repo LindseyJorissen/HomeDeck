@@ -82,15 +82,9 @@
         </div>
       </div>
 
-      <!-- Hourly Forecast — horizontal scroll -->
-      <div class="text-[0.82rem] font-bold uppercase tracking-[0.8px] text-muted mb-2">Hourly Forecast</div>
-      <div class="flex gap-2.5 overflow-x-auto pb-1" id="forecast" style="-webkit-overflow-scrolling:touch;scrollbar-width:none">
-        <div class="text-muted py-5">Loading…</div>
-      </div>
-
-      <!-- 7-Day Forecast — scroll to see -->
-      <div class="text-[0.82rem] font-bold uppercase tracking-[0.8px] text-muted mb-2 mt-5">7-Day Forecast</div>
-      <div class="flex gap-2.5 flex-wrap" id="daily-forecast">
+      <!-- Combined forecast scroll bar -->
+      <div class="text-[0.82rem] font-bold uppercase tracking-[0.8px] text-muted mb-2">Forecast</div>
+      <div class="flex gap-2 overflow-x-auto pb-1" id="forecast-combined" style="-webkit-overflow-scrolling:touch;scrollbar-width:none">
         <div class="text-muted py-5">Loading…</div>
       </div>
 
@@ -163,45 +157,49 @@
       document.getElementById('w-hum').textContent   = `${data.humidity}%`;
       document.getElementById('w-wind').textContent  = `${data.wind_speed} ${data.wind_unit || 'mph'}`;
 
-      const fc = document.getElementById('forecast');
+      const combined = document.getElementById('forecast-combined');
       if (!data.forecast || !data.forecast.length) {
-        fc.innerHTML = '<div class="text-muted py-5">No forecast data</div>';
+        combined.innerHTML = '<div class="text-muted py-5">No forecast data</div>';
         return;
       }
 
-      fc.innerHTML = data.forecast.map((h, i) => {
+      const hourlyCards = data.forecast.map((h, i) => {
         const d     = new Date(h.time);
         const hh    = d.getHours();
-        const label = hh === 0 ? '12am'
-                    : hh < 12  ? `${hh}am`
-                    : hh === 12? '12pm'
-                    : `${hh - 12}pm`;
+        const label = hh === 0 ? '12am' : hh < 12 ? `${hh}am` : hh === 12 ? '12pm' : `${hh - 12}pm`;
         const isNow = i === 0;
-
         return `
-          <div class="forecast-hour bg-surface rounded-sm px-3 py-3 text-center flex-shrink-0 shadow-card border border-border slide-up ${isNow ? 'now' : ''}"
-               style="animation-delay:${i*0.04}s;min-width:76px">
+          <div class="forecast-hour bg-surface rounded-sm px-3 py-3 text-center flex-shrink-0 shadow-card border border-border ${isNow ? 'now' : ''}"
+               style="min-width:76px">
             <div class="text-[0.8rem] text-muted font-medium">${isNow ? 'Now' : label}</div>
             <div class="my-1.5"><img src="../../assets/icons/${h.icon}" width="28" height="28" alt="" class="mx-auto" /></div>
             <div class="text-[1rem] font-bold">${h.temp}${unit}</div>
             ${h.precip_chance > 0 ? `<div class="text-[0.72rem] text-muted mt-0.5 flex items-center justify-center gap-0.5"><img src="../../assets/icons/umbrella.svg" width="11" height="11" alt="" /> ${h.precip_chance}%</div>` : ''}
           </div>`;
-      }).join('');
+      });
 
-      const df = document.getElementById('daily-forecast');
-      if (!data.daily_forecast || !data.daily_forecast.length) {
-        df.innerHTML = '<div class="text-muted py-5 text-center text-sm">No daily data</div>';
-      } else {
-        df.innerHTML = data.daily_forecast.map((d, i) => `
-          <div class="bg-surface rounded-sm px-[14px] py-[14px] text-center flex-1 min-w-[72px] shadow-card border border-border slide-up"
-               style="animation-delay:${i*0.04}s">
-            <div class="text-[0.75rem] text-muted font-medium">${d.day}</div>
-            <div class="my-1.5"><img src="../../assets/icons/${d.icon}" width="32" height="32" alt="" class="mx-auto" /></div>
+      const dailyCards = (data.daily_forecast || []).map((d, i) => {
+        const isTomorrow = i === 0;
+        return isTomorrow ? `
+          <div class="bg-surface rounded-sm px-4 py-3 text-center flex-shrink-0 shadow-card border-2 border-border"
+               style="min-width:96px">
+            <div class="text-[0.8rem] font-bold text-text">Tomorrow</div>
+            <div class="my-2"><img src="../../assets/icons/${d.icon}" width="38" height="38" alt="" class="mx-auto" /></div>
+            <div class="text-[1.15rem] font-bold">${d.high}${unit}</div>
+            <div class="text-[0.78rem] text-muted">${d.low}${unit}</div>
+            ${d.precip_chance > 0 ? `<div class="text-[0.72rem] text-muted mt-0.5 flex items-center justify-center gap-0.5"><img src="../../assets/icons/umbrella.svg" width="11" height="11" alt="" /> ${d.precip_chance}%</div>` : ''}
+          </div>` : `
+          <div class="bg-surface rounded-sm px-3 py-3 text-center flex-shrink-0 shadow-card border border-border"
+               style="min-width:76px">
+            <div class="text-[0.8rem] text-muted font-medium">${d.day}</div>
+            <div class="my-1.5"><img src="../../assets/icons/${d.icon}" width="28" height="28" alt="" class="mx-auto" /></div>
             <div class="text-[1rem] font-bold">${d.high}${unit}</div>
             <div class="text-[0.75rem] text-muted">${d.low}${unit}</div>
-            ${d.precip_chance > 0 ? `<div class="text-[0.7rem] text-muted mt-0.5 flex items-center justify-center gap-0.5"><img src="../../assets/icons/umbrella.svg" width="12" height="12" alt="" /> ${d.precip_chance}%</div>` : ''}
-          </div>`).join('');
-      }
+            ${d.precip_chance > 0 ? `<div class="text-[0.72rem] text-muted mt-0.5 flex items-center justify-center gap-0.5"><img src="../../assets/icons/umbrella.svg" width="11" height="11" alt="" /> ${d.precip_chance}%</div>` : ''}
+          </div>`;
+      });
+
+      combined.innerHTML = [...hourlyCards, ...dailyCards].join('');
 
       setLastUpdated('last-updated', new Date());
     }
