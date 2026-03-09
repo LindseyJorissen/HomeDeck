@@ -2,6 +2,7 @@
 
 import asyncio
 import json
+import os
 import socket
 import subprocess
 import time
@@ -463,17 +464,34 @@ async def save_config(body: dict):
     return {"ok": True}
 
 
+def _wayland_env() -> dict:
+    """Read Wayland display env saved by the kiosk script."""
+    env = dict(os.environ)
+    try:
+        with open('/tmp/homedeck-env') as f:
+            for line in f:
+                k, _, v = line.strip().partition('=')
+                if k:
+                    env[k] = v
+    except FileNotFoundError:
+        pass
+    return env
+
+
 @app.get("/api/keyboard/show")
 async def keyboard_show():
-    """Send SIGUSR2 to wvkbd to show the on-screen keyboard."""
-    subprocess.run(['pkill', '-USR2', 'wvkbd-mobintl'], capture_output=True)
+    """Launch wvkbd on the kiosk display."""
+    subprocess.run(['/usr/bin/pkill', 'wvkbd-mobintl'], capture_output=True)
+    env = _wayland_env()
+    if env.get('WAYLAND_DISPLAY'):
+        subprocess.Popen(['/usr/bin/wvkbd-mobintl'], env=env)
     return {"ok": True}
 
 
 @app.get("/api/keyboard/hide")
 async def keyboard_hide():
-    """Send SIGUSR1 to wvkbd to hide the on-screen keyboard."""
-    subprocess.run(['pkill', '-USR1', 'wvkbd-mobintl'], capture_output=True)
+    """Kill wvkbd."""
+    subprocess.run(['/usr/bin/pkill', 'wvkbd-mobintl'], capture_output=True)
     return {"ok": True}
 
 
