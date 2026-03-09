@@ -87,12 +87,64 @@ document.addEventListener('DOMContentLoaded', () => {
     el.addEventListener('mouseleave', () => { active = false; });
   });
 
-  // Virtual keyboard (wvkbd) — show on input focus, hide on blur
+  // On-screen keyboard for Pi touchscreen
+  let osk = null, oskTarget = null;
+
+  function oskCreate() {
+    const rows = [
+      ['1','2','3','4','5','6','7','8','9','0'],
+      ['q','w','e','r','t','y','u','i','o','p'],
+      ['a','s','d','f','g','h','j','k','l'],
+      ['z','x','c','v','b','n','m','-','.','@'],
+    ];
+    const kbd = document.createElement('div');
+    kbd.style.cssText = 'position:fixed;bottom:0;left:0;width:100%;background:var(--surface);border-top:1px solid var(--border);padding:6px 4px 4px;z-index:99999;display:none;touch-action:none;box-shadow:0 -4px 16px rgba(0,0,0,0.3)';
+    const btnStyle = 'flex:1;height:38px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:var(--radius-xs);font-size:0.9rem;cursor:pointer;touch-action:manipulation;min-width:0';
+    const inject = (ch) => {
+      if (!oskTarget) return;
+      const s = oskTarget.selectionStart, v = oskTarget.value;
+      oskTarget.value = v.slice(0, s) + ch + v.slice(oskTarget.selectionEnd);
+      oskTarget.setSelectionRange(s + ch.length, s + ch.length);
+      oskTarget.dispatchEvent(new Event('input', { bubbles: true }));
+    };
+    rows.forEach(row => {
+      const r = document.createElement('div');
+      r.style.cssText = 'display:flex;gap:3px;margin-bottom:3px;justify-content:center';
+      row.forEach(k => {
+        const b = document.createElement('button');
+        b.textContent = k; b.style.cssText = btnStyle;
+        b.addEventListener('mousedown', e => { e.preventDefault(); inject(k); });
+        r.appendChild(b);
+      });
+      kbd.appendChild(r);
+    });
+    const bot = document.createElement('div');
+    bot.style.cssText = 'display:flex;gap:3px';
+    [['Space', '  space  ', 4, () => inject(' ')],
+     ['⌫', '⌫', 1.5, () => { if (!oskTarget) return; const s = oskTarget.selectionStart; if (s > 0) { const v = oskTarget.value; oskTarget.value = v.slice(0,s-1)+v.slice(s); oskTarget.setSelectionRange(s-1,s-1); oskTarget.dispatchEvent(new Event('input',{bubbles:true})); } }],
+     ['Done', '✓ Done', 1.5, () => { kbd.style.display='none'; if(oskTarget) oskTarget.blur(); oskTarget=null; }]
+    ].forEach(([,label, flex, fn]) => {
+      const b = document.createElement('button');
+      b.textContent = label; b.style.cssText = btnStyle + `;flex:${flex}`;
+      if (label === '✓ Done') b.style.background = 'var(--primary)';
+      b.addEventListener('mousedown', e => { e.preventDefault(); fn(); });
+      bot.appendChild(b);
+    });
+    kbd.appendChild(bot);
+    document.body.appendChild(kbd);
+    return kbd;
+  }
+
   document.addEventListener('focusin', e => {
-    if (e.target.matches('input, textarea, select')) fetch('/api/keyboard/show').catch(() => {});
+    if (!e.target.matches('input[type=text],input[type=number],input[type=url],input[type=email],input[type=password],textarea')) return;
+    oskTarget = e.target;
+    if (!osk) osk = oskCreate();
+    osk.style.display = 'block';
   });
   document.addEventListener('focusout', e => {
-    if (e.target.matches('input, textarea, select')) fetch('/api/keyboard/hide').catch(() => {});
+    setTimeout(() => {
+      if (osk && !osk.contains(document.activeElement)) osk.style.display = 'none';
+    }, 100);
   });
 });
 
