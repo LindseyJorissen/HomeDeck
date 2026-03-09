@@ -54,6 +54,23 @@ function clamp(val, min, max) {
   return Math.min(Math.max(val, min), max);
 }
 
+// Touch scroll for Pi touchscreen (Chromium on Wayland doesn't auto-scroll)
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.overflow-y-auto').forEach(el => {
+    let startY = 0, startTop = 0, dragging = false;
+    el.addEventListener('touchstart', e => {
+      startY   = e.touches[0].clientY;
+      startTop = el.scrollTop;
+      dragging = true;
+    }, { passive: true });
+    el.addEventListener('touchmove', e => {
+      if (!dragging) return;
+      el.scrollTop = startTop - (e.touches[0].clientY - startY);
+    }, { passive: true });
+    el.addEventListener('touchend', () => { dragging = false; }, { passive: true });
+  });
+});
+
 function uid() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 }
