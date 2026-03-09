@@ -101,11 +101,13 @@
           </div>
         </div>
 
-        <!-- Daily forecast column -->
+        <!-- Daily forecast pill -->
         <div class="flex-1 min-w-0">
           <div class="text-[0.82rem] font-bold uppercase tracking-[0.8px] text-muted mb-2">Next Days</div>
-          <div id="forecast-daily-wrap" class="flex flex-col gap-2">
-            <div class="text-muted text-sm py-2">Loading…</div>
+          <div id="forecast-daily-wrap"
+               class="bg-surface rounded-card border border-border shadow-card flex overflow-x-auto"
+               style="-webkit-overflow-scrolling:touch;scrollbar-width:none">
+            <div class="text-muted py-4 px-4 text-sm">Loading…</div>
           </div>
         </div>
 
@@ -189,7 +191,7 @@
         return;
       }
 
-      // Hourly pill — items with dividers
+      // Hourly pill — items with dividers (min-width:88px → ~5 visible at 60% width)
       const hourlyItems = data.forecast.flatMap((h, i) => {
         const d     = new Date(h.time);
         const hh    = d.getHours();
@@ -197,41 +199,38 @@
         const isNow = i === 0;
         const divider = i > 0 ? `<div style="width:1px;background:var(--border);flex-shrink:0;margin:8px 0"></div>` : '';
         return [divider, `
-          <div class="forecast-hour flex-shrink-0 px-3 py-3 text-center ${isNow ? 'now' : ''}" style="min-width:64px">
+          <div class="forecast-hour flex-shrink-0 px-3 py-3 text-center ${isNow ? 'now' : ''}" style="min-width:88px">
             <div class="text-[0.78rem] text-muted font-medium">${isNow ? 'Now' : label}</div>
-            <div class="my-1.5"><img src="../../assets/icons/${h.icon}" width="26" height="26" alt="" class="mx-auto" /></div>
+            <div class="my-1.5"><img src="../../assets/icons/${h.icon}" width="28" height="28" alt="" class="mx-auto" /></div>
             <div class="text-[0.95rem] font-bold">${h.temp}${unit}</div>
             ${h.precip_chance > 0 ? `<div class="text-[0.7rem] text-muted mt-0.5 flex items-center justify-center gap-0.5"><img src="../../assets/icons/umbrella.svg" width="10" height="10" alt="" /> ${h.precip_chance}%</div>` : ''}
           </div>`];
       });
       hourlyPill.innerHTML = hourlyItems.join('');
 
-      // Daily forecast — tomorrow featured, rest smaller
+      // Daily pill — tomorrow featured first, rest same style, all with dividers
       const daily = data.daily_forecast || [];
-      const tomorrow = daily[0];
-      const rest = daily.slice(1);
-
-      const tomorrowCard = tomorrow ? `
-        <div class="bg-surface rounded-card border-2 border-border shadow-card px-3 py-3 flex items-center gap-3">
-          <img src="../../assets/icons/${tomorrow.icon}" width="42" height="42" alt="" class="flex-shrink-0" />
-          <div class="flex-1 min-w-0">
-            <div class="text-[0.82rem] font-bold text-text">Tomorrow</div>
-            <div class="text-[1.15rem] font-bold leading-tight">${tomorrow.high}${unit} <span class="text-[0.8rem] text-muted font-normal">${tomorrow.low}${unit}</span></div>
-            ${tomorrow.precip_chance > 0 ? `<div class="text-[0.7rem] text-muted flex items-center gap-0.5 mt-0.5"><img src="../../assets/icons/umbrella.svg" width="10" height="10" alt="" /> ${tomorrow.precip_chance}%</div>` : ''}
-          </div>
-        </div>` : '';
-
-      const restCards = rest.map(d => `
-        <div class="bg-surface rounded-sm border border-border shadow-card px-3 py-2 flex items-center gap-2">
-          <img src="../../assets/icons/${d.icon}" width="26" height="26" alt="" class="flex-shrink-0" />
-          <div class="flex-1 min-w-0">
-            <div class="text-[0.75rem] text-muted">${d.day}</div>
-            <div class="text-[0.9rem] font-bold leading-tight">${d.high}${unit} <span class="text-[0.72rem] text-muted font-normal">${d.low}${unit}</span></div>
-          </div>
-          ${d.precip_chance > 0 ? `<div class="text-[0.7rem] text-muted flex items-center gap-0.5"><img src="../../assets/icons/umbrella.svg" width="10" height="10" alt="" /> ${d.precip_chance}%</div>` : ''}
-        </div>`).join('');
-
-      dailyWrap.innerHTML = tomorrowCard + restCards;
+      const dailyItems = daily.flatMap((d, i) => {
+        const isTomorrow = i === 0;
+        const divider = i > 0 ? `<div style="width:1px;background:var(--border);flex-shrink:0;margin:8px 0"></div>` : '';
+        const item = isTomorrow ? `
+          <div class="flex-shrink-0 px-4 py-3 text-center" style="min-width:96px">
+            <div class="text-[0.78rem] font-bold text-text">Tomorrow</div>
+            <div class="my-1.5"><img src="../../assets/icons/${d.icon}" width="34" height="34" alt="" class="mx-auto" /></div>
+            <div class="text-[1.05rem] font-bold">${d.high}${unit}</div>
+            <div class="text-[0.72rem] text-muted">${d.low}${unit}</div>
+            ${d.precip_chance > 0 ? `<div class="text-[0.7rem] text-muted mt-0.5 flex items-center justify-center gap-0.5"><img src="../../assets/icons/umbrella.svg" width="10" height="10" alt="" /> ${d.precip_chance}%</div>` : ''}
+          </div>` : `
+          <div class="flex-shrink-0 px-3 py-3 text-center" style="min-width:72px">
+            <div class="text-[0.78rem] text-muted font-medium">${d.day}</div>
+            <div class="my-1.5"><img src="../../assets/icons/${d.icon}" width="26" height="26" alt="" class="mx-auto" /></div>
+            <div class="text-[0.9rem] font-bold">${d.high}${unit}</div>
+            <div class="text-[0.7rem] text-muted">${d.low}${unit}</div>
+            ${d.precip_chance > 0 ? `<div class="text-[0.7rem] text-muted mt-0.5 flex items-center justify-center gap-0.5"><img src="../../assets/icons/umbrella.svg" width="10" height="10" alt="" /> ${d.precip_chance}%</div>` : ''}
+          </div>`;
+        return [divider, item];
+      });
+      dailyWrap.innerHTML = dailyItems.join('');
 
       setLastUpdated('last-updated', new Date());
     }
