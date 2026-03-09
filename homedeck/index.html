@@ -44,10 +44,10 @@
   <body>
     <div id="app">
 
-      <header class="flex justify-between items-center px-8 py-[18px] bg-surface sticky top-0 z-10 border-b border-border shadow-app">
+      <header class="flex justify-between items-center px-8 py-[10px] bg-surface sticky top-0 z-10 border-b border-border shadow-app">
         <div class="flex flex-col gap-0.5">
-          <div id="clock" class="text-[3.4rem] font-bold tracking-[-2px] text-text leading-none">--:--</div>
-          <div id="date" class="text-[0.95rem] text-muted tracking-[0.2px]">Loading…</div>
+          <div id="clock" class="text-[2.6rem] font-bold tracking-[-2px] text-text leading-none">--:--</div>
+          <div id="date" class="text-[0.88rem] text-muted tracking-[0.2px]">Loading…</div>
         </div>
 
         <div class="flex gap-2.5 items-center">
@@ -68,10 +68,10 @@
         </div>
       </header>
 
-      <main class="p-7 pb-10 min-h-[calc(100vh-90px)] overflow-y-auto">
+      <main class="p-5 pb-5 min-h-[calc(100vh-80px)] overflow-y-auto">
         <div id="card-grid" class="grid grid-cols-[repeat(auto-fill,minmax(210px,1fr))] gap-5 max-w-[1300px] mx-auto">
 
-          <div class="card bg-surface rounded-card p-[22px] pb-5 shadow-card cursor-pointer flex flex-col gap-1.5 min-h-[158px] relative overflow-hidden border border-transparent hover:-translate-y-[5px] hover:shadow-hover hover:border-border active:scale-[0.965] active:shadow-app transition-[transform,box-shadow,border-color] duration-[180ms]"
+          <div class="card bg-surface rounded-card p-[22px] pb-5 shadow-card cursor-pointer flex flex-col gap-1.5 min-h-[140px] relative overflow-hidden border border-transparent hover:-translate-y-[5px] hover:shadow-hover hover:border-border active:scale-[0.965] active:shadow-app transition-[transform,box-shadow,border-color] duration-[180ms]"
                id="card-weather" onclick="openApp('weather')">
             <div class="text-[0.78rem] font-bold text-muted uppercase tracking-[0.7px]">Weather</div>
             <div class="flex items-center gap-3 flex-1">
@@ -83,7 +83,7 @@
             </div>
           </div>
 
-          <div class="card bg-surface rounded-card p-[22px] pb-5 shadow-card cursor-pointer flex flex-col gap-1.5 min-h-[158px] relative overflow-hidden border border-transparent hover:-translate-y-[5px] hover:shadow-hover hover:border-border active:scale-[0.965] active:shadow-app transition-[transform,box-shadow,border-color] duration-[180ms]"
+          <div class="card bg-surface rounded-card p-[22px] pb-5 shadow-card cursor-pointer flex flex-col gap-1.5 min-h-[140px] relative overflow-hidden border border-transparent hover:-translate-y-[5px] hover:shadow-hover hover:border-border active:scale-[0.965] active:shadow-app transition-[transform,box-shadow,border-color] duration-[180ms]"
                id="card-uptime" onclick="openApp('uptime')">
             <div class="text-[0.78rem] font-bold text-muted uppercase tracking-[0.7px]">Uptime Monitor</div>
             <div class="flex items-center gap-3 flex-1">
@@ -94,7 +94,7 @@
             </div>
           </div>
 
-          <div class="card bg-surface rounded-card p-[22px] pb-5 shadow-card cursor-pointer flex flex-col gap-1.5 min-h-[158px] relative overflow-hidden border border-transparent hover:-translate-y-[5px] hover:shadow-hover hover:border-border active:scale-[0.965] active:shadow-app transition-[transform,box-shadow,border-color] duration-[180ms]"
+          <div class="card bg-surface rounded-card p-[22px] pb-5 shadow-card cursor-pointer flex flex-col gap-1.5 min-h-[140px] relative overflow-hidden border border-transparent hover:-translate-y-[5px] hover:shadow-hover hover:border-border active:scale-[0.965] active:shadow-app transition-[transform,box-shadow,border-color] duration-[180ms]"
                id="card-server" onclick="openApp('server')">
             <div class="text-[0.78rem] font-bold text-muted uppercase tracking-[0.7px]">System</div>
             <div class="flex items-center gap-3 flex-1">
@@ -105,7 +105,7 @@
             </div>
           </div>
 
-          <div class="card bg-surface rounded-card p-[22px] pb-5 shadow-card cursor-pointer flex flex-col gap-1.5 min-h-[158px] relative overflow-hidden border border-transparent hover:-translate-y-[5px] hover:shadow-hover hover:border-border active:scale-[0.965] active:shadow-app transition-[transform,box-shadow,border-color] duration-[180ms]"
+          <div class="card bg-surface rounded-card p-[22px] pb-5 shadow-card cursor-pointer flex flex-col gap-1.5 min-h-[140px] relative overflow-hidden border border-transparent hover:-translate-y-[5px] hover:shadow-hover hover:border-border active:scale-[0.965] active:shadow-app transition-[transform,box-shadow,border-color] duration-[180ms]"
                id="card-ha" onclick="openApp('homeassistant')">
             <div class="text-[0.78rem] font-bold text-muted uppercase tracking-[0.7px]">Home Assistant</div>
             <div class="flex items-center gap-3 flex-1">

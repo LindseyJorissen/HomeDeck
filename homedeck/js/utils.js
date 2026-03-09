@@ -99,7 +99,7 @@ document.addEventListener('DOMContentLoaded', () => {
     ];
     const kbd = document.createElement('div');
     kbd.style.cssText = 'position:fixed;bottom:0;left:0;width:100%;background:var(--surface);border-top:1px solid var(--border);padding:6px 4px 4px;z-index:99999;display:none;touch-action:none;box-shadow:0 -4px 16px rgba(0,0,0,0.3)';
-    const btnStyle = 'flex:1;height:38px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:var(--radius-xs);font-size:0.9rem;cursor:pointer;touch-action:manipulation;min-width:0';
+    const btnStyle = 'flex:1;height:44px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:var(--radius-xs);font-size:1rem;cursor:pointer;touch-action:manipulation;min-width:0';
     const inject = (ch) => {
       if (!oskTarget) return;
       const s = oskTarget.selectionStart, v = oskTarget.value;

@@ -2,12 +2,6 @@
 
 Files for setting up HomeDeck on a Raspberry Pi in kiosk mode.
 
-## Dependencies (install on Pi)
-
-```bash
-sudo apt install matchbox-keyboard xdotool -y
-```
-
 ## Steps
 
 **1. Copy and enable the systemd service:**
@@ -33,21 +27,12 @@ mkdir -p ~/.config/autostart
 cp homedeck-kiosk.desktop ~/.config/autostart/
 ```
 
-**4. Configure labwc to position keyboard at bottom (`~/.config/labwc/rc.xml`):**
+**4. Configure labwc touch input (`~/.config/labwc/rc.xml`):**
 
 ```xml
 <?xml version="1.0"?>
 <openbox_config xmlns="http://openbox.org/3.4/rc">
     <touch deviceName="11-0038 generic ft5x06 (00)" mapToOutput="DSI-2" mouseEmulation="yes"/>
-    <applications>
-        <application title="Keyboard">
-            <position force="yes">
-                <x>0</x>
-                <y>288</y>
-            </position>
-            <decorate>no</decorate>
-        </application>
-    </applications>
 </openbox_config>
 ```
 
@@ -61,5 +46,5 @@ sudo reboot
 
 - The service runs the FastAPI backend on port 8000
 - The kiosk script waits 5 seconds for the system to settle, then launches Chromium fullscreen
-- On-screen keyboard uses `matchbox-keyboard` (X11/XWayland) positioned at bottom via xdotool
-- Keyboard auto-shows when tapping input fields, hides when focus leaves
+- On-screen keyboard is built into the browser (pure JS) — no external dependencies needed
+- Keyboard auto-shows when tapping input fields, hides when done
