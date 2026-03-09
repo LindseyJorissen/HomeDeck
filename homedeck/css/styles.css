@@ -40,6 +40,11 @@ html, body {
   user-select: none;
 }
 
+.overflow-y-auto, .overflow-y-scroll {
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
+}
+
 button { font-family: var(--font); }
 
 .status-dot {

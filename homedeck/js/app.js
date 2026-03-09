@@ -102,7 +102,15 @@ async function refreshSystem() {
   if (cpuEl) cpuEl.textContent = `${data.cpu_percent}%`;
   if (subEl) {
     const parts = [`CPU ${data.cpu_percent}%`, `RAM ${data.memory_percent}%`];
-    if (data.cpu_temp) parts.push(`${data.cpu_temp}°C`);
+    if (data.cpu_temp != null) {
+      const t = data.cpu_temp;
+      let label;
+      if (t < 60)      label = '✓';
+      else if (t < 70) label = 'Warm';
+      else if (t < 80) label = 'Hot';
+      else             label = 'Throttling!';
+      parts.push(`${t}°C ${label}`);
+    }
     subEl.textContent = parts.join('  •  ');
   }
 
