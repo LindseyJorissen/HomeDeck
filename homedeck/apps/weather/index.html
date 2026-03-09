@@ -65,27 +65,50 @@
 
       <!-- Stats: 3 columns — humidity, wind, feels like -->
       <div class="grid grid-cols-3 gap-3 mb-3">
-        <div class="bg-surface rounded-sm px-3 py-2 shadow-card border border-border flex flex-col items-center gap-1.5 slide-up">
-          <img src="../../assets/icons/humidity.svg" width="28" height="28" alt="" />
-          <div id="w-hum" class="text-[1.2rem] font-bold leading-none">--%</div>
-          <div class="text-[0.68rem] text-muted uppercase tracking-[0.4px]">Humidity</div>
+        <div class="bg-surface rounded-sm px-3 py-2 shadow-card border border-border flex items-center gap-3 slide-up">
+          <img src="../../assets/icons/humidity.svg" width="28" height="28" alt="" class="flex-shrink-0" />
+          <div>
+            <div id="w-hum" class="text-[1.2rem] font-bold leading-none">--%</div>
+            <div class="text-[0.68rem] text-muted uppercase tracking-[0.4px]">Humidity</div>
+          </div>
         </div>
-        <div class="bg-surface rounded-sm px-3 py-2 shadow-card border border-border flex flex-col items-center gap-1.5 slide-up">
-          <img src="../../assets/icons/windy.svg" width="28" height="28" alt="" />
-          <div id="w-wind" class="text-[1.2rem] font-bold leading-none">--</div>
-          <div class="text-[0.68rem] text-muted uppercase tracking-[0.4px]">Wind</div>
+        <div class="bg-surface rounded-sm px-3 py-2 shadow-card border border-border flex items-center gap-3 slide-up">
+          <img src="../../assets/icons/windy.svg" width="28" height="28" alt="" class="flex-shrink-0" />
+          <div>
+            <div id="w-wind" class="text-[1.2rem] font-bold leading-none">--</div>
+            <div class="text-[0.68rem] text-muted uppercase tracking-[0.4px]">Wind</div>
+          </div>
         </div>
-        <div class="bg-surface rounded-sm px-3 py-2 shadow-card border border-border flex flex-col items-center gap-1.5 slide-up">
-          <img src="../../assets/icons/thermometer.svg" width="28" height="28" alt="" />
-          <div id="w-feels" class="text-[1.2rem] font-bold leading-none">--°</div>
-          <div class="text-[0.68rem] text-muted uppercase tracking-[0.4px]">Feels Like</div>
+        <div class="bg-surface rounded-sm px-3 py-2 shadow-card border border-border flex items-center gap-3 slide-up">
+          <img src="../../assets/icons/thermometer.svg" width="28" height="28" alt="" class="flex-shrink-0" />
+          <div>
+            <div id="w-feels" class="text-[1.2rem] font-bold leading-none">--°</div>
+            <div class="text-[0.68rem] text-muted uppercase tracking-[0.4px]">Feels Like</div>
+          </div>
         </div>
       </div>
 
-      <!-- Combined forecast scroll bar -->
-      <div class="text-[0.82rem] font-bold uppercase tracking-[0.8px] text-muted mb-2">Forecast</div>
-      <div class="flex gap-2 overflow-x-auto pb-1" id="forecast-combined" style="-webkit-overflow-scrolling:touch;scrollbar-width:none">
-        <div class="text-muted py-5">Loading…</div>
+      <!-- Forecast: hourly pill (60%) + daily column (40%) -->
+      <div class="flex gap-3 items-start">
+
+        <!-- Hourly scrollable pill -->
+        <div style="width:60%;flex-shrink:0">
+          <div class="text-[0.82rem] font-bold uppercase tracking-[0.8px] text-muted mb-2">Hourly</div>
+          <div class="bg-surface rounded-card border border-border shadow-card flex overflow-x-auto"
+               id="forecast-hourly-pill"
+               style="-webkit-overflow-scrolling:touch;scrollbar-width:none">
+            <div class="text-muted py-4 px-4 text-sm">Loading…</div>
+          </div>
+        </div>
+
+        <!-- Daily forecast column -->
+        <div class="flex-1 min-w-0">
+          <div class="text-[0.82rem] font-bold uppercase tracking-[0.8px] text-muted mb-2">Next Days</div>
+          <div id="forecast-daily-wrap" class="flex flex-col gap-2">
+            <div class="text-muted text-sm py-2">Loading…</div>
+          </div>
+        </div>
+
       </div>
 
       <div class="text-[0.75rem] text-muted text-center mt-3 pb-2" id="last-updated"></div>
@@ -157,49 +180,58 @@
       document.getElementById('w-hum').textContent   = `${data.humidity}%`;
       document.getElementById('w-wind').textContent  = `${data.wind_speed} ${data.wind_unit || 'mph'}`;
 
-      const combined = document.getElementById('forecast-combined');
+      const hourlyPill = document.getElementById('forecast-hourly-pill');
+      const dailyWrap  = document.getElementById('forecast-daily-wrap');
+
       if (!data.forecast || !data.forecast.length) {
-        combined.innerHTML = '<div class="text-muted py-5">No forecast data</div>';
+        hourlyPill.innerHTML = '<div class="text-muted py-4 px-4 text-sm">No data</div>';
+        dailyWrap.innerHTML  = '<div class="text-muted text-sm py-2">No data</div>';
         return;
       }
 
-      const hourlyCards = data.forecast.map((h, i) => {
+      // Hourly pill — items with dividers
+      const hourlyItems = data.forecast.flatMap((h, i) => {
         const d     = new Date(h.time);
         const hh    = d.getHours();
         const label = hh === 0 ? '12am' : hh < 12 ? `${hh}am` : hh === 12 ? '12pm' : `${hh - 12}pm`;
         const isNow = i === 0;
-        return `
-          <div class="forecast-hour bg-surface rounded-sm px-3 py-3 text-center flex-shrink-0 shadow-card border border-border ${isNow ? 'now' : ''}"
-               style="min-width:76px">
-            <div class="text-[0.8rem] text-muted font-medium">${isNow ? 'Now' : label}</div>
-            <div class="my-1.5"><img src="../../assets/icons/${h.icon}" width="28" height="28" alt="" class="mx-auto" /></div>
-            <div class="text-[1rem] font-bold">${h.temp}${unit}</div>
-            ${h.precip_chance > 0 ? `<div class="text-[0.72rem] text-muted mt-0.5 flex items-center justify-center gap-0.5"><img src="../../assets/icons/umbrella.svg" width="11" height="11" alt="" /> ${h.precip_chance}%</div>` : ''}
-          </div>`;
+        const divider = i > 0 ? `<div style="width:1px;background:var(--border);flex-shrink:0;margin:8px 0"></div>` : '';
+        return [divider, `
+          <div class="forecast-hour flex-shrink-0 px-3 py-3 text-center ${isNow ? 'now' : ''}" style="min-width:64px">
+            <div class="text-[0.78rem] text-muted font-medium">${isNow ? 'Now' : label}</div>
+            <div class="my-1.5"><img src="../../assets/icons/${h.icon}" width="26" height="26" alt="" class="mx-auto" /></div>
+            <div class="text-[0.95rem] font-bold">${h.temp}${unit}</div>
+            ${h.precip_chance > 0 ? `<div class="text-[0.7rem] text-muted mt-0.5 flex items-center justify-center gap-0.5"><img src="../../assets/icons/umbrella.svg" width="10" height="10" alt="" /> ${h.precip_chance}%</div>` : ''}
+          </div>`];
       });
+      hourlyPill.innerHTML = hourlyItems.join('');
 
-      const dailyCards = (data.daily_forecast || []).map((d, i) => {
-        const isTomorrow = i === 0;
-        return isTomorrow ? `
-          <div class="bg-surface rounded-sm px-4 py-3 text-center flex-shrink-0 shadow-card border-2 border-border"
-               style="min-width:96px">
-            <div class="text-[0.8rem] font-bold text-text">Tomorrow</div>
-            <div class="my-2"><img src="../../assets/icons/${d.icon}" width="38" height="38" alt="" class="mx-auto" /></div>
-            <div class="text-[1.15rem] font-bold">${d.high}${unit}</div>
-            <div class="text-[0.78rem] text-muted">${d.low}${unit}</div>
-            ${d.precip_chance > 0 ? `<div class="text-[0.72rem] text-muted mt-0.5 flex items-center justify-center gap-0.5"><img src="../../assets/icons/umbrella.svg" width="11" height="11" alt="" /> ${d.precip_chance}%</div>` : ''}
-          </div>` : `
-          <div class="bg-surface rounded-sm px-3 py-3 text-center flex-shrink-0 shadow-card border border-border"
-               style="min-width:76px">
-            <div class="text-[0.8rem] text-muted font-medium">${d.day}</div>
-            <div class="my-1.5"><img src="../../assets/icons/${d.icon}" width="28" height="28" alt="" class="mx-auto" /></div>
-            <div class="text-[1rem] font-bold">${d.high}${unit}</div>
-            <div class="text-[0.75rem] text-muted">${d.low}${unit}</div>
-            ${d.precip_chance > 0 ? `<div class="text-[0.72rem] text-muted mt-0.5 flex items-center justify-center gap-0.5"><img src="../../assets/icons/umbrella.svg" width="11" height="11" alt="" /> ${d.precip_chance}%</div>` : ''}
-          </div>`;
-      });
+      // Daily forecast — tomorrow featured, rest smaller
+      const daily = data.daily_forecast || [];
+      const tomorrow = daily[0];
+      const rest = daily.slice(1);
 
-      combined.innerHTML = [...hourlyCards, ...dailyCards].join('');
+      const tomorrowCard = tomorrow ? `
+        <div class="bg-surface rounded-card border-2 border-border shadow-card px-3 py-3 flex items-center gap-3">
+          <img src="../../assets/icons/${tomorrow.icon}" width="42" height="42" alt="" class="flex-shrink-0" />
+          <div class="flex-1 min-w-0">
+            <div class="text-[0.82rem] font-bold text-text">Tomorrow</div>
+            <div class="text-[1.15rem] font-bold leading-tight">${tomorrow.high}${unit} <span class="text-[0.8rem] text-muted font-normal">${tomorrow.low}${unit}</span></div>
+            ${tomorrow.precip_chance > 0 ? `<div class="text-[0.7rem] text-muted flex items-center gap-0.5 mt-0.5"><img src="../../assets/icons/umbrella.svg" width="10" height="10" alt="" /> ${tomorrow.precip_chance}%</div>` : ''}
+          </div>
+        </div>` : '';
+
+      const restCards = rest.map(d => `
+        <div class="bg-surface rounded-sm border border-border shadow-card px-3 py-2 flex items-center gap-2">
+          <img src="../../assets/icons/${d.icon}" width="26" height="26" alt="" class="flex-shrink-0" />
+          <div class="flex-1 min-w-0">
+            <div class="text-[0.75rem] text-muted">${d.day}</div>
+            <div class="text-[0.9rem] font-bold leading-tight">${d.high}${unit} <span class="text-[0.72rem] text-muted font-normal">${d.low}${unit}</span></div>
+          </div>
+          ${d.precip_chance > 0 ? `<div class="text-[0.7rem] text-muted flex items-center gap-0.5"><img src="../../assets/icons/umbrella.svg" width="10" height="10" alt="" /> ${d.precip_chance}%</div>` : ''}
+        </div>`).join('');
+
+      dailyWrap.innerHTML = tomorrowCard + restCards;
 
       setLastUpdated('last-updated', new Date());
     }
