@@ -1,0 +1,4 @@
+[Desktop Entry]
+Type=Application
+Name=HomeDeck Kiosk
+Exec=/home/pi/homedeck-kiosk.sh
