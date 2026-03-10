@@ -184,9 +184,28 @@
       </div>
 
       <div class="bg-surface rounded-card mb-3 shadow-card border border-border overflow-hidden slide-up mx-3" style="animation-delay:0.20s">
-        <div class="px-4 py-2 border-b border-border text-[0.72rem] font-extrabold uppercase tracking-[0.8px] text-muted bg-raised flex items-center justify-between">
-          <span>Dashboard Cards</span>
-          <span class="text-[0.68rem] font-medium normal-case tracking-normal opacity-60">drag to reorder</span>
+        <div class="px-4 py-2 border-b border-border text-[0.72rem] font-extrabold uppercase tracking-[0.8px] text-muted bg-raised flex items-center gap-2">
+          <img src="../../assets/icons/monitor.svg" width="16" height="16" alt="" /> Dashboard Cards
+        </div>
+
+        <!-- Top row pickers -->
+        <div class="px-4 py-3 border-b border-border">
+          <div class="text-[0.75rem] font-bold text-muted uppercase tracking-[0.5px] mb-2">Top Row (Large)</div>
+          <div class="flex gap-3">
+            <div class="flex-1 flex flex-col gap-1">
+              <div class="text-[0.72rem] text-muted">Left (wider)</div>
+              <select id="top-left-select" class="input text-[0.85rem] py-2 h-auto"></select>
+            </div>
+            <div class="flex-1 flex flex-col gap-1">
+              <div class="text-[0.72rem] text-muted">Right</div>
+              <select id="top-right-select" class="input text-[0.85rem] py-2 h-auto"></select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom row toggles + drag reorder -->
+        <div class="px-4 py-2 bg-raised border-b border-border">
+          <div class="text-[0.75rem] font-bold text-muted uppercase tracking-[0.5px]">Bottom Row</div>
         </div>
         <div id="cards-sortable"></div>
       </div>
@@ -216,46 +235,92 @@
     let _debounce = null;
     let _tickers  = [];
 
-    const CARD_DEFS = [
+    const ALL_CARD_DEFS = [
       { id: 'weather', label: 'Weather' },
-      { id: 'uptime',  label: 'Uptime Monitor' },
       { id: 'server',  label: 'System' },
+      { id: 'uptime',  label: 'Uptime Monitor' },
       { id: 'ha',      label: 'Home Assistant' },
+      { id: 'stocks',  label: 'Stocks' },
+      { id: 'network', label: 'Network' },
     ];
-    const DEFAULT_ORDER = ['weather', 'uptime', 'server', 'ha'];
-    let _cardOrder   = [...DEFAULT_ORDER];
-    let _cardVisible = { weather: true, uptime: true, server: true, ha: true };
+    let _topLeft     = 'weather';
+    let _topRight    = 'server';
+    let _bottomOrder = ['uptime', 'ha', 'stocks', 'network'];
+    let _cardVisible = {};
     let _dragSrc     = null;
+
+    function _getBottomDefs() {
+      const topSet = new Set([_topLeft, _topRight]);
+      return _bottomOrder
+        .filter(id => !topSet.has(id))
+        .map(id => ALL_CARD_DEFS.find(d => d.id === id))
+        .filter(Boolean);
+    }
 
     function loadCardSettings() {
       const stored = JSON.parse(localStorage.getItem('homedeck_cards') || '{}');
-      _cardVisible = {
-        weather: stored.weather !== false,
-        uptime:  stored.uptime  !== false,
-        server:  stored.server  !== false,
-        ha:      stored.ha      !== false,
-      };
-      const storedOrder = stored.order;
-      _cardOrder = Array.isArray(storedOrder) &&
-                   storedOrder.length === 4 &&
-                   DEFAULT_ORDER.every(id => storedOrder.includes(id))
-        ? storedOrder
-        : [...DEFAULT_ORDER];
+      _topLeft  = stored.topLeft  || 'weather';
+      _topRight = stored.topRight || 'server';
+      if (_topLeft === _topRight) _topRight = 'server';
+
+      const topSet = new Set([_topLeft, _topRight]);
+      const nonTop = ALL_CARD_DEFS.filter(d => !topSet.has(d.id)).map(d => d.id);
+      const storedBottom = Array.isArray(stored.bottomOrder) ? stored.bottomOrder : [];
+      _bottomOrder = [
+        ...storedBottom.filter(id => nonTop.includes(id)),
+        ...nonTop.filter(id => !storedBottom.includes(id)),
+      ];
+
+      nonTop.forEach(id => { _cardVisible[id] = stored[id] !== false; });
+
+      renderTopSelects();
       renderCardSettings();
+    }
+
+    function renderTopSelects() {
+      ['top-left-select', 'top-right-select'].forEach((selId, idx) => {
+        const sel = document.getElementById(selId);
+        if (!sel) return;
+        const currentVal = idx === 0 ? _topLeft : _topRight;
+        const otherVal   = idx === 0 ? _topRight : _topLeft;
+        sel.innerHTML = ALL_CARD_DEFS
+          .filter(d => d.id !== otherVal)
+          .map(d => `<option value="${d.id}"${d.id === currentVal ? ' selected' : ''}>${d.label}</option>`)
+          .join('');
+        sel.onchange = () => {
+          if (idx === 0) _topLeft  = sel.value;
+          else           _topRight = sel.value;
+          // Ensure no duplicates
+          if (_topLeft === _topRight) {
+            const fallback = ALL_CARD_DEFS.find(d => d.id !== _topLeft && d.id !== _topRight);
+            if (idx === 0) _topRight = fallback?.id || 'server';
+            else           _topLeft  = fallback?.id || 'weather';
+          }
+          const topSet = new Set([_topLeft, _topRight]);
+          const nonTop = ALL_CARD_DEFS.filter(d => !topSet.has(d.id)).map(d => d.id);
+          _bottomOrder = [
+            ..._bottomOrder.filter(id => nonTop.includes(id)),
+            ...nonTop.filter(id => !_bottomOrder.includes(id)),
+          ];
+          nonTop.forEach(id => { if (_cardVisible[id] == null) _cardVisible[id] = true; });
+          renderTopSelects();
+          renderCardSettings();
+        };
+      });
     }
 
     function renderCardSettings() {
       const container = document.getElementById('cards-sortable');
-      container.innerHTML = _cardOrder.map((id, i) => {
-        const def    = CARD_DEFS.find(d => d.id === id);
-        const isLast = i === _cardOrder.length - 1;
+      const defs = _getBottomDefs();
+      container.innerHTML = defs.map((def, i) => {
+        const isLast = i === defs.length - 1;
         return `
           <div class="card-sort-row flex items-center gap-3 px-4 py-2 transition-opacity duration-[180ms] ${isLast ? '' : 'border-b border-[var(--border)]'}"
-               draggable="true" data-card-id="${id}">
+               draggable="true" data-card-id="${def.id}">
             <div class="text-[1.1rem] text-muted flex-shrink-0 cursor-grab select-none leading-none" title="Drag to reorder">⠿</div>
             <div class="flex-1 text-[0.85rem] font-semibold text-text">${def.label}</div>
             <label class="relative inline-block w-11 h-6 flex-shrink-0 cursor-pointer">
-              <input type="checkbox" class="opacity-0 w-0 h-0" data-card-id="${id}" ${_cardVisible[id] ? 'checked' : ''} />
+              <input type="checkbox" class="opacity-0 w-0 h-0" data-card-id="${def.id}" ${_cardVisible[def.id] !== false ? 'checked' : ''} />
               <span class="toggle-slider absolute inset-0 bg-border rounded-full transition-colors duration-[180ms]"></span>
             </label>
           </div>`;
@@ -280,9 +345,7 @@
       e.dataTransfer.dropEffect = 'move';
       if (this !== _dragSrc) this.classList.add('drag-over');
     }
-    function onDragLeave() {
-      this.classList.remove('drag-over');
-    }
+    function onDragLeave() { this.classList.remove('drag-over'); }
     function onDrop(e) {
       e.stopPropagation();
       this.classList.remove('drag-over');
@@ -290,12 +353,10 @@
       document.querySelectorAll('#cards-sortable input[data-card-id]').forEach(cb => {
         _cardVisible[cb.dataset.cardId] = cb.checked;
       });
-      const srcId  = _dragSrc.dataset.cardId;
-      const destId = this.dataset.cardId;
-      const si = _cardOrder.indexOf(srcId);
-      const di = _cardOrder.indexOf(destId);
-      _cardOrder.splice(si, 1);
-      _cardOrder.splice(di, 0, srcId);
+      const si = _bottomOrder.indexOf(_dragSrc.dataset.cardId);
+      const di = _bottomOrder.indexOf(this.dataset.cardId);
+      _bottomOrder.splice(si, 1);
+      _bottomOrder.splice(di, 0, _dragSrc.dataset.cardId);
       renderCardSettings();
     }
     function onDragEnd() {
@@ -307,13 +368,9 @@
       document.querySelectorAll('#cards-sortable input[data-card-id]').forEach(cb => {
         _cardVisible[cb.dataset.cardId] = cb.checked;
       });
-      localStorage.setItem('homedeck_cards', JSON.stringify({
-        order:   _cardOrder,
-        weather: _cardVisible.weather,
-        uptime:  _cardVisible.uptime,
-        server:  _cardVisible.server,
-        ha:      _cardVisible.ha,
-      }));
+      const out = { topLeft: _topLeft, topRight: _topRight, bottomOrder: _bottomOrder };
+      _bottomOrder.forEach(id => { out[id] = _cardVisible[id] !== false; });
+      localStorage.setItem('homedeck_cards', JSON.stringify(out));
     }
 
     async function init() {

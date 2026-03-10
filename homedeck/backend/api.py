@@ -12,6 +12,7 @@ from typing import Optional
 
 import httpx
 import psutil
+import yfinance as yf
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -353,38 +354,34 @@ async def get_weather():
 
 @app.get("/api/stocks")
 async def get_stocks():
-    """Fetch latest price and daily % change for configured tickers via Yahoo Finance."""
+    """Fetch latest price and daily % change for configured tickers via yfinance."""
     cfg     = load_config()
     tickers = cfg.get("stocks", {}).get("tickers", [])
     if not tickers:
         return {"stocks": []}
 
-    results = []
-    async with httpx.AsyncClient(timeout=6.0) as client:
-        for ticker in tickers:
+    def _fetch():
+        results = []
+        for symbol in tickers:
             try:
-                resp = await client.get(
-                    f"https://query1.finance.yahoo.com/v8/finance/chart/{ticker}",
-                    params={"interval": "1d", "range": "2d"},
-                    headers={"User-Agent": "Mozilla/5.0 (compatible; HomeDeck/1.0)"},
-                )
-                data   = resp.json()
-                result = data["chart"]["result"][0]
-                meta   = result["meta"]
-                price      = meta.get("regularMarketPrice")
-                prev_close = meta.get("previousClose") or meta.get("chartPreviousClose")
+                t    = yf.Ticker(symbol)
+                info = t.fast_info
+                price      = info.last_price
+                prev_close = info.previous_close
                 change_pct = (
                     round((price - prev_close) / prev_close * 100, 2)
                     if price and prev_close else None
                 )
                 results.append({
-                    "ticker":     ticker,
+                    "ticker":     symbol,
                     "price":      round(price, 2) if price else None,
                     "change_pct": change_pct,
                 })
             except Exception:
-                results.append({"ticker": ticker, "price": None, "change_pct": None})
+                results.append({"ticker": symbol, "price": None, "change_pct": None})
+        return results
 
+    results = await asyncio.get_event_loop().run_in_executor(None, _fetch)
     return {"stocks": results}
 
 

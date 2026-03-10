@@ -69,126 +69,115 @@
       </header>
 
       <main class="flex-1 p-4 flex flex-col gap-4 overflow-hidden min-h-0">
-
-        <!-- Row 1: Weather (large) + System -->
-        <div class="flex gap-4 flex-[2] min-h-0">
-
-          <!-- Weather card -->
-          <div class="card bg-surface rounded-card shadow-card border border-transparent hover:-translate-y-[3px] hover:shadow-hover hover:border-border active:scale-[0.97] transition-[transform,box-shadow,border-color] duration-[180ms] cursor-pointer p-5 flex flex-col flex-[3] min-w-0"
-               id="card-weather" onclick="openApp('weather')">
-            <div class="text-[0.72rem] font-bold text-muted uppercase tracking-[0.7px]">Weather</div>
-            <div class="flex-1 flex items-center justify-between min-h-0">
-              <div class="flex flex-col gap-2">
-                <div class="text-[3.8rem] font-bold text-text leading-none" id="weather-temp">--°</div>
-                <div class="text-[1rem] text-muted font-medium" id="weather-cond">Loading…</div>
-                <div class="flex items-center gap-1.5 text-[0.85rem] text-muted mt-1" id="weather-loc" style="display:none">
-                  <img src="assets/icons/pin.svg" width="13" height="13" alt="" />
-                  <span id="weather-loc-text"></span>
-                </div>
-              </div>
-              <div id="weather-icon" class="flex items-center justify-center pr-2 flex-shrink-0"></div>
-            </div>
-          </div>
-
-          <!-- System card -->
-          <div class="card bg-surface rounded-card shadow-card border border-transparent hover:-translate-y-[3px] hover:shadow-hover hover:border-border active:scale-[0.97] transition-[transform,box-shadow,border-color] duration-[180ms] cursor-pointer p-5 flex flex-col flex-[2] min-w-0"
-               id="card-server" onclick="openApp('server')">
-            <div class="flex justify-between items-center flex-shrink-0">
-              <div class="text-[0.72rem] font-bold text-muted uppercase tracking-[0.7px]">System</div>
-              <span class="text-muted text-[1.1rem] leading-none">›</span>
-            </div>
-            <div class="flex-1 flex flex-col justify-center gap-3 min-h-0">
-              <div class="flex items-center gap-2">
-                <img src="assets/icons/monitor.svg" width="14" height="14" alt="" class="flex-shrink-0 opacity-50" />
-                <span class="text-[0.72rem] font-bold text-muted uppercase w-8">CPU</span>
-                <span class="text-[0.82rem] font-bold text-text w-11 text-right" id="sys-cpu-val">--%</span>
-                <div class="flex-1 h-2 bg-border rounded-full overflow-hidden">
-                  <div id="sys-cpu-bar" class="h-full rounded-full bg-success transition-[width] duration-700" style="width:0%"></div>
-                </div>
-              </div>
-              <div class="flex items-center gap-2">
-                <img src="assets/icons/hardrive.svg" width="14" height="14" alt="" class="flex-shrink-0 opacity-50" />
-                <span class="text-[0.72rem] font-bold text-muted uppercase w-8">RAM</span>
-                <span class="text-[0.82rem] font-bold text-text w-11 text-right" id="sys-ram-val">--%</span>
-                <div class="flex-1 h-2 bg-border rounded-full overflow-hidden">
-                  <div id="sys-ram-bar" class="h-full rounded-full bg-primary transition-[width] duration-700" style="width:0%"></div>
-                </div>
-              </div>
-              <div class="flex items-center gap-2">
-                <img src="assets/icons/thermometer.svg" width="14" height="14" alt="" class="flex-shrink-0 opacity-50" />
-                <span class="text-[0.72rem] font-bold text-muted uppercase w-8">TEMP</span>
-                <span class="text-[0.82rem] font-bold text-text w-11 text-right" id="sys-temp-val">--°C</span>
-                <div class="flex-1 h-2 bg-border rounded-full overflow-hidden">
-                  <div id="sys-temp-bar" class="h-full rounded-full bg-primary transition-[width] duration-700" style="width:0%"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-        </div>
-
-        <!-- Row 2: 4 small cards -->
-        <div class="flex gap-4 flex-[1] min-h-0 max-h-[160px]">
-
-          <!-- Uptime Monitor -->
-          <div class="card bg-surface rounded-card shadow-card border border-transparent hover:-translate-y-[3px] hover:shadow-hover hover:border-border active:scale-[0.97] transition-[transform,box-shadow,border-color] duration-[180ms] cursor-pointer p-5 flex flex-col flex-1 min-w-0"
-               id="card-uptime" onclick="openApp('uptime')">
-            <div class="text-[0.72rem] font-bold text-muted uppercase tracking-[0.7px]">Uptime Monitor</div>
-            <div class="flex-1 flex items-center gap-3 min-h-0">
-              <div id="uptime-status-icon" class="w-8 h-8 rounded-full bg-border flex items-center justify-center flex-shrink-0">
-                <img src="assets/icons/check_mark.svg" width="16" height="16" alt="" style="filter:brightness(0) invert(1)" />
-              </div>
-              <div class="text-[1.9rem] font-bold text-text leading-none" id="uptime-value">-- / --</div>
-            </div>
-            <div class="text-[0.82rem] text-muted flex-shrink-0" id="uptime-sub">Services Online</div>
-          </div>
-
-          <!-- Home Assistant -->
-          <div class="card bg-surface rounded-card shadow-card border border-transparent hover:-translate-y-[3px] hover:shadow-hover hover:border-border active:scale-[0.97] transition-[transform,box-shadow,border-color] duration-[180ms] cursor-pointer p-5 flex flex-col flex-1 min-w-0"
-               id="card-ha" onclick="openApp('homeassistant')">
-            <div class="text-[0.72rem] font-bold text-muted uppercase tracking-[0.7px]">Home Assistant</div>
-            <div class="flex-1 flex items-center gap-3 min-h-0">
-              <img src="assets/icons/house.svg" width="30" height="30" alt="" class="flex-shrink-0" style="filter:invert(28%) sepia(89%) saturate(574%) hue-rotate(205deg) brightness(95%) contrast(90%)" />
-              <div class="text-[1.9rem] font-bold text-text leading-none" id="ha-scenes-count">–</div>
-            </div>
-            <div class="text-[0.82rem] text-muted flex-shrink-0" id="ha-sub">Scenes Available</div>
-          </div>
-
-          <!-- Stocks -->
-          <div class="card bg-surface rounded-card shadow-card border border-transparent hover:-translate-y-[3px] hover:shadow-hover hover:border-border active:scale-[0.97] transition-[transform,box-shadow,border-color] duration-[180ms] p-5 flex flex-col flex-1 min-w-0"
-               id="card-stocks">
-            <div class="flex items-center gap-1.5 text-[0.72rem] font-bold text-muted uppercase tracking-[0.7px] flex-shrink-0">
-              <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
-                <path d="M1 7.5L4 4.5L6 6.5L10 2" stroke="var(--success)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-              Stocks
-            </div>
-            <div class="flex-1 flex flex-col justify-center gap-1 min-h-0" id="stocks-list">
-              <div class="text-[0.82rem] text-muted">No stocks</div>
-            </div>
-          </div>
-
-          <!-- Network -->
-          <div class="card bg-surface rounded-card shadow-card border border-transparent hover:-translate-y-[3px] hover:shadow-hover hover:border-border active:scale-[0.97] transition-[transform,box-shadow,border-color] duration-[180ms] p-5 flex flex-col flex-1 min-w-0"
-               id="card-network">
-            <div class="flex items-center gap-1.5 text-[0.72rem] font-bold text-muted uppercase tracking-[0.7px] flex-shrink-0">
-              <svg width="14" height="11" viewBox="0 0 20 16" fill="none">
-                <path d="M1 5C5.5 0.5 14.5 0.5 19 5" stroke="var(--primary)" stroke-width="2" stroke-linecap="round"/>
-                <path d="M3.5 8C6.5 5 13.5 5 16.5 8" stroke="var(--primary)" stroke-width="2" stroke-linecap="round"/>
-                <path d="M6.5 11C8 9.5 12 9.5 13.5 11" stroke="var(--primary)" stroke-width="2" stroke-linecap="round"/>
-                <circle cx="10" cy="14.5" r="1.5" fill="var(--primary)"/>
-              </svg>
-              Network
-            </div>
-            <div class="flex-1 flex items-center min-h-0">
-              <div class="text-[1.9rem] font-bold text-text leading-none" id="network-devices">--</div>
-            </div>
-            <div class="text-[0.82rem] text-muted flex-shrink-0">Devices</div>
-          </div>
-
-        </div>
-
+        <!-- Rows are populated by applyCardLayout() in app.js -->
+        <div class="flex gap-4 flex-[2] min-h-0" id="row-top"></div>
+        <div class="flex gap-4 flex-[1] min-h-0 max-h-[160px]" id="row-bottom"></div>
       </main>
+
+    </div>
+
+    <!-- Card pool: all cards live here, JS moves them into row-top / row-bottom -->
+    <div id="card-pool" style="display:none">
+
+      <div class="card bg-surface rounded-card shadow-card border border-transparent hover:-translate-y-[3px] hover:shadow-hover hover:border-border active:scale-[0.97] transition-[transform,box-shadow,border-color] duration-[180ms] cursor-pointer p-5 flex flex-col min-w-0"
+           id="card-weather" onclick="openApp('weather')">
+        <div class="text-[0.72rem] font-bold text-muted uppercase tracking-[0.7px]">Weather</div>
+        <div class="flex-1 flex items-center justify-between min-h-0">
+          <div class="flex flex-col gap-2">
+            <div class="text-[3.8rem] font-bold text-text leading-none" id="weather-temp">--°</div>
+            <div class="text-[1rem] text-muted font-medium" id="weather-cond">Loading…</div>
+            <div class="flex items-center gap-1.5 text-[0.85rem] text-muted mt-1" id="weather-loc" style="display:none">
+              <img src="assets/icons/pin.svg" width="13" height="13" alt="" />
+              <span id="weather-loc-text"></span>
+            </div>
+          </div>
+          <div id="weather-icon" class="flex items-center justify-center pr-2 flex-shrink-0"></div>
+        </div>
+      </div>
+
+      <div class="card bg-surface rounded-card shadow-card border border-transparent hover:-translate-y-[3px] hover:shadow-hover hover:border-border active:scale-[0.97] transition-[transform,box-shadow,border-color] duration-[180ms] cursor-pointer p-5 flex flex-col min-w-0"
+           id="card-server" onclick="openApp('server')">
+        <div class="flex justify-between items-center flex-shrink-0">
+          <div class="text-[0.72rem] font-bold text-muted uppercase tracking-[0.7px]">System</div>
+          <span class="text-muted text-[1.1rem] leading-none">›</span>
+        </div>
+        <div class="flex-1 flex flex-col justify-center gap-3 min-h-0">
+          <div class="flex items-center gap-2">
+            <img src="assets/icons/monitor.svg" width="14" height="14" alt="" class="flex-shrink-0 opacity-50" />
+            <span class="text-[0.72rem] font-bold text-muted uppercase w-8">CPU</span>
+            <span class="text-[0.82rem] font-bold text-text w-11 text-right" id="sys-cpu-val">--%</span>
+            <div class="flex-1 h-2 bg-border rounded-full overflow-hidden">
+              <div id="sys-cpu-bar" class="h-full rounded-full bg-success transition-[width] duration-700" style="width:0%"></div>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <img src="assets/icons/hardrive.svg" width="14" height="14" alt="" class="flex-shrink-0 opacity-50" />
+            <span class="text-[0.72rem] font-bold text-muted uppercase w-8">RAM</span>
+            <span class="text-[0.82rem] font-bold text-text w-11 text-right" id="sys-ram-val">--%</span>
+            <div class="flex-1 h-2 bg-border rounded-full overflow-hidden">
+              <div id="sys-ram-bar" class="h-full rounded-full bg-primary transition-[width] duration-700" style="width:0%"></div>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <img src="assets/icons/thermometer.svg" width="14" height="14" alt="" class="flex-shrink-0 opacity-50" />
+            <span class="text-[0.72rem] font-bold text-muted uppercase w-8">TEMP</span>
+            <span class="text-[0.82rem] font-bold text-text w-11 text-right" id="sys-temp-val">--°C</span>
+            <div class="flex-1 h-2 bg-border rounded-full overflow-hidden">
+              <div id="sys-temp-bar" class="h-full rounded-full bg-primary transition-[width] duration-700" style="width:0%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card bg-surface rounded-card shadow-card border border-transparent hover:-translate-y-[3px] hover:shadow-hover hover:border-border active:scale-[0.97] transition-[transform,box-shadow,border-color] duration-[180ms] cursor-pointer p-5 flex flex-col min-w-0"
+           id="card-uptime" onclick="openApp('uptime')">
+        <div class="text-[0.72rem] font-bold text-muted uppercase tracking-[0.7px]">Uptime Monitor</div>
+        <div class="flex-1 flex items-center gap-3 min-h-0">
+          <img id="uptime-status-icon" src="assets/icons/check_mark.svg" width="28" height="28" alt="" class="flex-shrink-0 opacity-70" />
+          <div class="text-[1.9rem] font-bold text-text leading-none" id="uptime-value">-- / --</div>
+        </div>
+        <div class="text-[0.82rem] text-muted flex-shrink-0" id="uptime-sub">Services Online</div>
+      </div>
+
+      <div class="card bg-surface rounded-card shadow-card border border-transparent hover:-translate-y-[3px] hover:shadow-hover hover:border-border active:scale-[0.97] transition-[transform,box-shadow,border-color] duration-[180ms] cursor-pointer p-5 flex flex-col min-w-0"
+           id="card-ha" onclick="openApp('homeassistant')">
+        <div class="text-[0.72rem] font-bold text-muted uppercase tracking-[0.7px]">Home Assistant</div>
+        <div class="flex-1 flex items-center gap-3 min-h-0">
+          <img src="assets/icons/house.svg" width="30" height="30" alt="" class="flex-shrink-0 opacity-70" />
+          <div class="text-[1.9rem] font-bold text-text leading-none" id="ha-scenes-count">–</div>
+        </div>
+        <div class="text-[0.82rem] text-muted flex-shrink-0" id="ha-sub">Scenes Available</div>
+      </div>
+
+      <div class="card bg-surface rounded-card shadow-card border border-transparent hover:-translate-y-[3px] hover:shadow-hover hover:border-border active:scale-[0.97] transition-[transform,box-shadow,border-color] duration-[180ms] p-5 flex flex-col min-w-0"
+           id="card-stocks">
+        <div class="flex items-center gap-1.5 text-[0.72rem] font-bold text-muted uppercase tracking-[0.7px] flex-shrink-0">
+          <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
+            <path d="M1 7.5L4 4.5L6 6.5L10 2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Stocks
+        </div>
+        <div class="flex-1 flex flex-col justify-center gap-1 min-h-0" id="stocks-list">
+          <div class="text-[0.82rem] text-muted">No stocks</div>
+        </div>
+      </div>
+
+      <div class="card bg-surface rounded-card shadow-card border border-transparent hover:-translate-y-[3px] hover:shadow-hover hover:border-border active:scale-[0.97] transition-[transform,box-shadow,border-color] duration-[180ms] p-5 flex flex-col min-w-0"
+           id="card-network">
+        <div class="flex items-center gap-1.5 text-[0.72rem] font-bold text-muted uppercase tracking-[0.7px] flex-shrink-0">
+          <svg width="14" height="11" viewBox="0 0 20 16" fill="none">
+            <path d="M1 5C5.5 0.5 14.5 0.5 19 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <path d="M3.5 8C6.5 5 13.5 5 16.5 8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <path d="M6.5 11C8 9.5 12 9.5 13.5 11" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <circle cx="10" cy="14.5" r="1.5" fill="currentColor"/>
+          </svg>
+          Network
+        </div>
+        <div class="flex-1 flex items-center min-h-0">
+          <div class="text-[1.9rem] font-bold text-text leading-none" id="network-devices">--</div>
+        </div>
+        <div class="text-[0.82rem] text-muted flex-shrink-0">Devices</div>
+      </div>
 
     </div>
 

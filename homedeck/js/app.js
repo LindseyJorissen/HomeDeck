@@ -100,13 +100,10 @@ async function refreshUptime() {
   }
 
   if (iconEl) {
-    const allUp = up === total && total > 0;
     const hasErr = up < total && total > 0;
-    iconEl.className = `w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-      allUp  ? 'bg-success' :
-      hasErr ? 'bg-error' :
-               'bg-border'
-    }`;
+    iconEl.src = hasErr
+      ? 'assets/icons/x_mark.svg'
+      : 'assets/icons/check_mark.svg';
   }
 }
 
@@ -190,5 +187,56 @@ async function refreshStocks() {
 }
 
 
+const _CARD_ID_MAP = {
+  weather: 'card-weather',
+  server:  'card-server',
+  uptime:  'card-uptime',
+  ha:      'card-ha',
+  stocks:  'card-stocks',
+  network: 'card-network',
+};
+const _ALL_CARD_IDS = Object.keys(_CARD_ID_MAP);
+
+function applyCardLayout() {
+  const stored = JSON.parse(localStorage.getItem('homedeck_cards') || '{}');
+
+  const topLeft  = stored.topLeft  || 'weather';
+  const topRight = stored.topRight || 'server';
+  const topSet   = new Set([topLeft, topRight]);
+
+  // Bottom order: stored minus top cards, then append any missing
+  const storedBottom = Array.isArray(stored.bottomOrder) ? stored.bottomOrder : [];
+  const bottomOrder  = [
+    ...storedBottom.filter(id => !topSet.has(id) && _ALL_CARD_IDS.includes(id)),
+    ..._ALL_CARD_IDS.filter(id => !topSet.has(id) && !storedBottom.includes(id)),
+  ];
+
+  const rowTop    = document.getElementById('row-top');
+  const rowBottom = document.getElementById('row-bottom');
+  if (!rowTop || !rowBottom) return;
+
+  // Place top cards
+  [topLeft, topRight].forEach((id, i) => {
+    const el = document.getElementById(_CARD_ID_MAP[id]);
+    if (!el) return;
+    // Replace any existing flex-size class
+    el.className = el.className.replace(/\bflex-\[\d+\]\b|\bflex-1\b/g, '').trim();
+    el.classList.add(i === 0 ? 'flex-[3]' : 'flex-[2]');
+    el.style.display = '';
+    rowTop.appendChild(el);
+  });
+
+  // Place bottom cards
+  bottomOrder.forEach(id => {
+    const el = document.getElementById(_CARD_ID_MAP[id]);
+    if (!el) return;
+    el.className = el.className.replace(/\bflex-\[\d+\]\b|\bflex-1\b/g, '').trim();
+    el.classList.add('flex-1');
+    el.style.display = stored[id] !== false ? '' : 'none';
+    rowBottom.appendChild(el);
+  });
+}
+
+applyCardLayout();
 refreshDashboard();
 setInterval(refreshDashboard, 30_000);
