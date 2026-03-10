@@ -32,3 +32,20 @@ input:checked + .toggle-slider::before {
   opacity: 1;
   transform: translateX(-50%) translateY(0);
 }
+
+/* Page dots */
+.page-dot {
+  height: 8px;
+  border-radius: 4px;
+  background: var(--border);
+  transition: width 0.28s ease, background 0.28s ease;
+  width: 8px;
+  cursor: pointer;
+  border: none;
+  padding: 0;
+  flex-shrink: 0;
+}
+.page-dot.dot-active {
+  width: 24px;
+  background: var(--primary);
+}
