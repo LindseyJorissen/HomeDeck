@@ -33,6 +33,9 @@ input:checked + .toggle-slider::before {
   transform: translateX(-50%) translateY(0);
 }
 
+/* Hide scrollbar on carousel viewport */
+#pages-viewport::-webkit-scrollbar { display: none; }
+
 /* Page dots */
 .page-dot {
   height: 8px;
