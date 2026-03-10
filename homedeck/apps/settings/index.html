@@ -50,13 +50,12 @@
       <span id="page-title" class="text-[1.15rem] font-bold text-text flex-1 truncate">Weather</span>
     </header>
 
-    <!-- Pages viewport: CSS scroll snap carousel -->
-    <div class="flex-1 overflow-x-scroll relative" id="pages-viewport"
-         style="scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none">
-      <div id="pages-track" class="flex h-full" style="width:500%">
+    <!-- Pages viewport -->
+    <div class="flex-1 overflow-hidden relative" id="pages-viewport">
+      <div id="pages-track" class="flex h-full" style="width:500%;will-change:transform;transition:transform 0.3s ease">
 
         <!-- ── PAGE 0: Weather ─────────────────────────────── -->
-        <div class="h-full" style="width:20%;flex-shrink:0;overflow-y:auto;-webkit-overflow-scrolling:touch;scroll-snap-align:start;scroll-snap-stop:always">
+        <div class="h-full" style="width:20%;flex-shrink:0;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y">
           <div class="bg-surface rounded-card shadow-card border border-border overflow-hidden mx-3 mt-3 mb-3">
             <div class="px-4 py-2 border-b border-border text-[0.72rem] font-extrabold uppercase tracking-[0.8px] text-muted bg-raised flex items-center gap-2">
               <img src="../../assets/icons/cloud_with_sun.svg" width="16" height="16" alt="" /> Weather
@@ -101,7 +100,7 @@
         </div>
 
         <!-- ── PAGE 1: Uptime Monitor ──────────────────────── -->
-        <div class="h-full" style="width:20%;flex-shrink:0;overflow-y:auto;-webkit-overflow-scrolling:touch;scroll-snap-align:start;scroll-snap-stop:always">
+        <div class="h-full" style="width:20%;flex-shrink:0;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y">
           <div class="bg-surface rounded-card shadow-card border border-border overflow-hidden mx-3 mt-3 mb-3">
             <div class="px-4 py-2 border-b border-border text-[0.72rem] font-extrabold uppercase tracking-[0.8px] text-muted bg-raised flex items-center gap-2">
               <img src="../../assets/icons/hourglass.svg" width="16" height="16" alt="" /> Uptime Monitor
@@ -116,7 +115,7 @@
         </div>
 
         <!-- ── PAGE 2: Home Assistant ──────────────────────── -->
-        <div class="h-full" style="width:20%;flex-shrink:0;overflow-y:auto;-webkit-overflow-scrolling:touch;scroll-snap-align:start;scroll-snap-stop:always">
+        <div class="h-full" style="width:20%;flex-shrink:0;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y">
           <div class="bg-surface rounded-card shadow-card border border-border mx-3 mt-3 mb-3">
             <div class="px-4 py-2 border-b border-border text-[0.72rem] font-extrabold uppercase tracking-[0.8px] text-muted bg-raised flex items-center gap-2 rounded-t-card">
               <img src="../../assets/icons/house.svg" width="16" height="16" alt="" /> Home Assistant
@@ -181,7 +180,7 @@
         </div>
 
         <!-- ── PAGE 3: Stocks ─────────────────────────────── -->
-        <div class="h-full" style="width:20%;flex-shrink:0;overflow-y:auto;-webkit-overflow-scrolling:touch;scroll-snap-align:start;scroll-snap-stop:always">
+        <div class="h-full" style="width:20%;flex-shrink:0;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y">
           <div class="bg-surface rounded-card shadow-card border border-border overflow-hidden mx-3 mt-3 mb-3">
             <div class="px-4 py-2 border-b border-border text-[0.72rem] font-extrabold uppercase tracking-[0.8px] text-muted bg-raised flex items-center gap-2">
               <img src="../../assets/icons/sunrise.svg" width="16" height="16" alt="" /> Stocks
@@ -195,7 +194,7 @@
         </div>
 
         <!-- ── PAGE 4: Dashboard Cards ────────────────────── -->
-        <div class="h-full" style="width:20%;flex-shrink:0;overflow-y:auto;-webkit-overflow-scrolling:touch;scroll-snap-align:start;scroll-snap-stop:always">
+        <div class="h-full" style="width:20%;flex-shrink:0;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y">
           <div class="bg-surface rounded-card shadow-card border border-border overflow-hidden mx-3 mt-3 mb-3">
             <div class="px-4 py-2 border-b border-border text-[0.72rem] font-extrabold uppercase tracking-[0.8px] text-muted bg-raised flex items-center gap-2">
               <img src="../../assets/icons/monitor.svg" width="16" height="16" alt="" /> Dashboard Cards
@@ -268,8 +267,7 @@
 
     function goToPage(n) {
       _currentPage = Math.max(0, Math.min(PAGES.length - 1, n));
-      const vp = document.getElementById('pages-viewport');
-      vp.scrollTo({ left: _currentPage * vp.offsetWidth, behavior: 'smooth' });
+      document.getElementById('pages-track').style.transform = `translateX(-${_currentPage * 20}%)`;
       updatePageUI();
     }
 
@@ -280,19 +278,33 @@
       ).join('');
     }
 
-    // Detect native swipe page changes via scroll event
+    // ── Touch swipe detection ─────────────────────────────────
+    // touch-action:pan-y on each page div tells the browser to only handle
+    // vertical scrolling natively, so horizontal touches reach our listener.
     const _vp = document.getElementById('pages-viewport');
-    let _scrollTimer;
-    _vp.addEventListener('scroll', () => {
-      clearTimeout(_scrollTimer);
-      _scrollTimer = setTimeout(() => {
-        const page = Math.round(_vp.scrollLeft / _vp.offsetWidth);
-        if (page !== _currentPage) {
-          _currentPage = page;
-          updatePageUI();
-        }
-      }, 50);
+    let _tx0 = 0, _ty0 = 0, _dir = null;
+
+    _vp.addEventListener('touchstart', e => {
+      _tx0 = e.touches[0].clientX;
+      _ty0 = e.touches[0].clientY;
+      _dir = null;
     }, { passive: true });
+
+    _vp.addEventListener('touchmove', e => {
+      const dx = e.touches[0].clientX - _tx0;
+      const dy = e.touches[0].clientY - _ty0;
+      if (_dir === null && (Math.abs(dx) > 4 || Math.abs(dy) > 4)) {
+        _dir = Math.abs(dx) >= Math.abs(dy) ? 'h' : 'v';
+      }
+      if (_dir === 'h') e.preventDefault();
+    }, { passive: false });
+
+    _vp.addEventListener('touchend', e => {
+      if (_dir !== 'h') return;
+      const dx = e.changedTouches[0].clientX - _tx0;
+      if (Math.abs(dx) > 40) goToPage(_currentPage + (dx < 0 ? 1 : -1));
+      _dir = null;
+    });
 
     renderDots();
 
