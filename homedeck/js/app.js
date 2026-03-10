@@ -22,6 +22,7 @@ async function refreshDashboard() {
     refreshUptime(),
     refreshSystem(),
     refreshHA(),
+    refreshStocks(),
   ]);
 }
 
@@ -29,6 +30,7 @@ async function refreshNetwork() {
   const internetDot = document.getElementById('internet-dot');
   const localDot    = document.getElementById('local-dot');
   const localLabel  = document.getElementById('local-label');
+  const devicesEl   = document.getElementById('network-devices');
 
   const data = await fetchAPI('/api/network');
 
@@ -41,14 +43,19 @@ async function refreshNetwork() {
   if (localLabel && data?.local_ip) {
     localLabel.textContent = data.local_ip;
   }
+  if (devicesEl && data?.device_count != null) {
+    devicesEl.textContent = data.device_count;
+  }
 }
 
 async function refreshWeather() {
   const data = await fetchAPI('/api/weather');
-  const tempEl = document.getElementById('weather-temp');
-  const condEl = document.getElementById('weather-cond');
-  const iconEl = document.getElementById('weather-icon');
-  const card   = document.getElementById('card-weather');
+  const tempEl  = document.getElementById('weather-temp');
+  const condEl  = document.getElementById('weather-cond');
+  const iconEl  = document.getElementById('weather-icon');
+  const locEl   = document.getElementById('weather-loc');
+  const locText = document.getElementById('weather-loc-text');
+  const card    = document.getElementById('card-weather');
 
   if (!data || data.error) {
     if (tempEl) tempEl.textContent = '--°';
@@ -58,14 +65,19 @@ async function refreshWeather() {
 
   if (tempEl) tempEl.textContent = `${data.temperature}°`;
   if (condEl) condEl.textContent = data.condition;
-  if (iconEl) iconEl.innerHTML = `<img src="assets/icons/${data.icon}" style="width:68px;height:68px;object-fit:contain;" alt="" />`;
-  if (card)   card.classList.add('card--primary');
+  if (iconEl) iconEl.innerHTML = `<img src="assets/icons/${data.icon}" style="width:88px;height:88px;object-fit:contain;" alt="" />`;
+  if (locEl && locText && data.location && data.location !== 'Unknown') {
+    locText.textContent = data.location;
+    locEl.style.display = 'flex';
+  }
+  if (card) card.classList.add('card--primary');
 }
 
 async function refreshUptime() {
   const data    = await fetchAPI('/api/uptime');
   const valueEl = document.getElementById('uptime-value');
   const subEl   = document.getElementById('uptime-sub');
+  const iconEl  = document.getElementById('uptime-status-icon');
   const card    = document.getElementById('card-uptime');
 
   if (!data) {
@@ -86,32 +98,52 @@ async function refreshUptime() {
     else if (up === 0 && total > 0) card.classList.add('card--error');
     else if (total > 0)             card.classList.add('card--warning');
   }
+
+  if (iconEl) {
+    const allUp = up === total && total > 0;
+    const hasErr = up < total && total > 0;
+    iconEl.className = `w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+      allUp  ? 'bg-success' :
+      hasErr ? 'bg-error' :
+               'bg-border'
+    }`;
+  }
 }
 
 async function refreshSystem() {
-  const data   = await fetchAPI('/api/system');
-  const cpuEl  = document.getElementById('server-cpu');
-  const subEl  = document.getElementById('server-sub');
-  const card   = document.getElementById('card-server');
+  const data    = await fetchAPI('/api/system');
+  const cpuVal  = document.getElementById('sys-cpu-val');
+  const cpuBar  = document.getElementById('sys-cpu-bar');
+  const ramVal  = document.getElementById('sys-ram-val');
+  const ramBar  = document.getElementById('sys-ram-bar');
+  const tempVal = document.getElementById('sys-temp-val');
+  const tempBar = document.getElementById('sys-temp-bar');
 
-  if (!data) {
-    if (cpuEl) cpuEl.textContent = '--%';
-    return;
+  if (!data) return;
+
+  const cpu  = parseFloat(data.cpu_percent);
+  const ram  = parseFloat(data.memory_percent);
+  const temp = data.cpu_temp;
+
+  if (cpuVal) cpuVal.textContent = `${data.cpu_percent}%`;
+  if (cpuBar) {
+    cpuBar.style.width = `${cpu}%`;
+    cpuBar.className = `h-full rounded-full transition-[width] duration-700 ${cpu > 80 ? 'bg-error' : cpu > 50 ? 'bg-warning' : 'bg-success'}`;
   }
 
-  if (cpuEl) cpuEl.textContent = `${data.cpu_percent}%`;
-  if (subEl) {
-    const parts = [`CPU ${data.cpu_percent}%`, `RAM ${data.memory_percent}%`];
-    if (data.cpu_temp != null) parts.push(`${data.cpu_temp}°C`);
-    subEl.textContent = parts.join(' · ');
+  if (ramVal) ramVal.textContent = `${data.memory_percent}%`;
+  if (ramBar) {
+    ramBar.style.width = `${ram}%`;
+    ramBar.className = `h-full rounded-full transition-[width] duration-700 ${ram > 80 ? 'bg-error' : ram > 60 ? 'bg-warning' : 'bg-primary'}`;
   }
 
-  if (card) {
-    card.classList.remove('card--success', 'card--warning', 'card--error');
-    const cpu = parseFloat(data.cpu_percent);
-    if (cpu > 80)      card.classList.add('card--error');
-    else if (cpu > 50) card.classList.add('card--warning');
-    else               card.classList.add('card--success');
+  if (temp != null) {
+    if (tempVal) tempVal.textContent = `${temp}°C`;
+    if (tempBar) {
+      const pct = Math.min(100, Math.max(0, (temp - 30) / 55 * 100));
+      tempBar.style.width = `${pct}%`;
+      tempBar.className = `h-full rounded-full transition-[width] duration-700 ${temp > 80 ? 'bg-error' : temp > 65 ? 'bg-warning' : 'bg-primary'}`;
+    }
   }
 }
 
@@ -134,37 +166,29 @@ async function refreshHA() {
   }
 }
 
+async function refreshStocks() {
+  const data   = await fetchAPI('/api/stocks');
+  const listEl = document.getElementById('stocks-list');
+  if (!listEl) return;
 
-function applyCardVisibility() {
-  const stored       = JSON.parse(localStorage.getItem('homedeck_cards') || '{}');
-  const defaultOrder = ['weather', 'uptime', 'server', 'ha'];
-  const idMap = {
-    weather: 'card-weather',
-    uptime:  'card-uptime',
-    server:  'card-server',
-    ha:      'card-ha',
-  };
-
-  const order = Array.isArray(stored.order) &&
-                stored.order.length === 4 &&
-                defaultOrder.every(id => stored.order.includes(id))
-    ? stored.order
-    : defaultOrder;
-
-  const grid = document.getElementById('card-grid');
-  if (grid) {
-    order.forEach(key => {
-      const el = document.getElementById(idMap[key]);
-      if (el) grid.appendChild(el);
-    });
+  const stocks = data?.stocks || [];
+  if (!stocks.length) {
+    listEl.innerHTML = '<div class="text-[0.82rem] text-muted">No stocks configured</div>';
+    return;
   }
 
-  for (const key of defaultOrder) {
-    const el = document.getElementById(idMap[key]);
-    if (el) el.style.display = stored[key] !== false ? '' : 'none';
-  }
+  listEl.innerHTML = stocks.slice(0, 3).map(s => {
+    const chg    = s.change_pct;
+    const color  = chg == null ? 'color:var(--text-secondary)' : chg >= 0 ? 'color:var(--success)' : 'color:var(--error)';
+    const sign   = chg != null && chg >= 0 ? '+' : '';
+    const chgStr = chg != null ? `${sign}${chg}%` : '--';
+    return `<div style="display:flex;justify-content:space-between;align-items:center">
+      <span style="font-size:0.9rem;font-weight:700;color:var(--text)">${s.ticker}</span>
+      <span style="font-size:0.9rem;font-weight:700;${color}">${chgStr}</span>
+    </div>`;
+  }).join('');
 }
 
-applyCardVisibility();
+
 refreshDashboard();
 setInterval(refreshDashboard, 30_000);

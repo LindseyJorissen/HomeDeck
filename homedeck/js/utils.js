@@ -145,6 +145,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const b = document.createElement('button');
         b.textContent = k; b.style.cssText = btnStyle;
         b.addEventListener('mousedown', e => { e.preventDefault(); inject(k); });
+        b.addEventListener('touchstart', e => { e.preventDefault(); inject(k); }, { passive: false });
         r.appendChild(b);
       });
       kbd.appendChild(r);
@@ -159,6 +160,7 @@ document.addEventListener('DOMContentLoaded', () => {
       b.textContent = label; b.style.cssText = btnStyle + `;flex:${flex}`;
       if (label === '✓ Done') b.style.background = 'var(--primary)';
       b.addEventListener('mousedown', e => { e.preventDefault(); fn(); });
+      b.addEventListener('touchstart', e => { e.preventDefault(); fn(); }, { passive: false });
       bot.appendChild(b);
     });
     kbd.appendChild(bot);
@@ -172,10 +174,15 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!osk) osk = oskCreate();
     osk.style.display = 'block';
   });
-  document.addEventListener('focusout', e => {
+  document.addEventListener('focusout', () => {
     setTimeout(() => {
-      if (osk && !osk.contains(document.activeElement)) osk.style.display = 'none';
-    }, 100);
+      const active = document.activeElement;
+      if (osk && !osk.contains(active) &&
+          !active.matches('input,textarea')) {
+        osk.style.display = 'none';
+        oskTarget = null;
+      }
+    }, 300);
   });
 });
 

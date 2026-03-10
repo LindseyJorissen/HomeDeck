@@ -104,7 +104,7 @@
         </div>
         <div id="checks-list"></div>
         <div class="flex gap-2 px-4 py-2 flex-wrap">
-          <input class="input" id="new-check-name" placeholder="Name" style="width:110px;flex-shrink:0" />
+          <input class="input" id="new-check-name" type="text" placeholder="Name" style="width:110px;flex-shrink:0" />
           <input class="input" id="new-check-url" placeholder="https://example.com" style="flex:1;min-width:140px" type="url" />
           <button class="btn btn--primary btn--sm" onclick="addCheck()">+ Add</button>
         </div>
@@ -165,14 +165,25 @@
                 <div id="icon-grid" class="grid grid-cols-4 gap-1"></div>
               </div>
             </div>
-            <input class="input" id="new-scene-name"  placeholder="Scene name" style="width:110px;flex-shrink:0" />
-            <input class="input" id="new-scene-id"    placeholder="scene.entity_id" style="flex:1;min-width:120px" />
+            <input class="input" id="new-scene-name"  type="text" placeholder="Scene name" style="width:110px;flex-shrink:0" />
+            <input class="input" id="new-scene-id"    type="text" placeholder="scene.entity_id" style="flex:1;min-width:120px" />
             <button class="btn btn--primary btn--sm" onclick="addScene()">+ Add</button>
           </div>
         </div>
       </div>
 
       <div class="bg-surface rounded-card mb-3 shadow-card border border-border overflow-hidden slide-up mx-3" style="animation-delay:0.16s">
+        <div class="px-4 py-2 border-b border-border text-[0.72rem] font-extrabold uppercase tracking-[0.8px] text-muted bg-raised flex items-center gap-2">
+          <img src="../../assets/icons/sunrise.svg" width="16" height="16" alt="" /> Stocks
+        </div>
+        <div id="tickers-list"></div>
+        <div class="flex gap-2 px-4 py-2 flex-wrap">
+          <input class="input" id="new-ticker" type="text" placeholder="e.g. NVDA" style="width:110px;flex-shrink:0;text-transform:uppercase" oninput="this.value=this.value.toUpperCase()" />
+          <button class="btn btn--primary btn--sm" onclick="addTicker()">+ Add</button>
+        </div>
+      </div>
+
+      <div class="bg-surface rounded-card mb-3 shadow-card border border-border overflow-hidden slide-up mx-3" style="animation-delay:0.20s">
         <div class="px-4 py-2 border-b border-border text-[0.72rem] font-extrabold uppercase tracking-[0.8px] text-muted bg-raised flex items-center justify-between">
           <span>Dashboard Cards</span>
           <span class="text-[0.68rem] font-medium normal-case tracking-normal opacity-60">drag to reorder</span>
@@ -203,6 +214,7 @@
     let _lon      = null;
     let _cityName = '';
     let _debounce = null;
+    let _tickers  = [];
 
     const CARD_DEFS = [
       { id: 'weather', label: 'Weather' },
@@ -322,6 +334,9 @@
       setActiveToggle('wind-toggle', w.wind_unit  || 'mph');
 
       renderChecks((data.uptime || {}).checks || []);
+
+      _tickers = (data.stocks || {}).tickers || [];
+      renderTickers(_tickers);
 
       const ha = data.homeassistant || {};
       document.getElementById('ha-url').value   = ha.url   || '';
@@ -609,6 +624,7 @@
           wind_unit:     getToggleVal('wind-toggle'),
         },
         uptime: { checks: _checks },
+        stocks: { tickers: _tickers },
         homeassistant: {
           url:    document.getElementById('ha-url').value.trim(),
           token:  document.getElementById('ha-token').value.trim(),
@@ -636,6 +652,35 @@
       t.style.background = isErr ? 'var(--error)' : 'var(--text)';
       t.classList.add('show');
       setTimeout(() => t.classList.remove('show'), 2200);
+    }
+
+    function renderTickers(tickers) {
+      const el = document.getElementById('tickers-list');
+      if (!el) return;
+      if (!tickers.length) {
+        el.innerHTML = '<div class="px-4 py-3 text-[0.85rem] text-muted">No stocks added yet</div>';
+        return;
+      }
+      el.innerHTML = tickers.map((t, i) => `
+        <div class="flex items-center gap-2.5 px-5 py-2.5 border-b border-[var(--border)]">
+          <div class="text-[0.9rem] font-bold flex-1">${escHtml(t)}</div>
+          <button class="btn btn--danger btn--sm btn--icon" onclick="removeTicker(${i})">
+            <img src="../../assets/icons/trash.svg" width="14" height="14" alt="Remove" />
+          </button>
+        </div>`).join('');
+    }
+
+    function addTicker() {
+      const val = document.getElementById('new-ticker').value.trim().toUpperCase();
+      if (!val || _tickers.includes(val)) return;
+      _tickers = [..._tickers, val];
+      renderTickers(_tickers);
+      document.getElementById('new-ticker').value = '';
+    }
+
+    function removeTicker(i) {
+      _tickers = _tickers.filter((_, idx) => idx !== i);
+      renderTickers(_tickers);
     }
 
     function escHtml(s) {

@@ -47,6 +47,9 @@ _DEFAULT_CONFIG = {
             {"name": "GitHub",  "url": "https://github.com"},
         ]
     },
+    "stocks": {
+        "tickers": [],
+    },
     "servers": [],
 }
 
@@ -91,6 +94,15 @@ def _format_uptime(seconds: float) -> str:
     if d > 0:  return f"{d}d {h}h {m}m"
     if h > 0:  return f"{h}h {m}m"
     return f"{m}m"
+
+def _count_network_devices() -> int:
+    """Count devices visible in the ARP table (Pi/Linux only)."""
+    try:
+        with open("/proc/net/arp") as f:
+            lines = f.readlines()[1:]  # skip header
+        return len([l for l in lines if l.strip() and l.split()[2] != "0x0"])
+    except Exception:
+        return 0
 
 def _local_ip() -> str:
     try:
@@ -188,11 +200,12 @@ async def get_network():
     """Internet reachability and local network info."""
     internet = await _check_internet()
     return {
-        "internet":  internet,
-        "local":     True,
-        "local_ip":  _local_ip(),
-        "hostname":  socket.gethostname(),
-        "timestamp": datetime.now().isoformat(),
+        "internet":     internet,
+        "local":        True,
+        "local_ip":     _local_ip(),
+        "hostname":     socket.gethostname(),
+        "device_count": _count_network_devices(),
+        "timestamp":    datetime.now().isoformat(),
     }
 
 
@@ -338,6 +351,43 @@ async def get_weather():
     }
 
 
+@app.get("/api/stocks")
+async def get_stocks():
+    """Fetch latest price and daily % change for configured tickers via Yahoo Finance."""
+    cfg     = load_config()
+    tickers = cfg.get("stocks", {}).get("tickers", [])
+    if not tickers:
+        return {"stocks": []}
+
+    results = []
+    async with httpx.AsyncClient(timeout=6.0) as client:
+        for ticker in tickers:
+            try:
+                resp = await client.get(
+                    f"https://query1.finance.yahoo.com/v8/finance/chart/{ticker}",
+                    params={"interval": "1d", "range": "2d"},
+                    headers={"User-Agent": "Mozilla/5.0 (compatible; HomeDeck/1.0)"},
+                )
+                data   = resp.json()
+                result = data["chart"]["result"][0]
+                meta   = result["meta"]
+                price      = meta.get("regularMarketPrice")
+                prev_close = meta.get("previousClose") or meta.get("chartPreviousClose")
+                change_pct = (
+                    round((price - prev_close) / prev_close * 100, 2)
+                    if price and prev_close else None
+                )
+                results.append({
+                    "ticker":     ticker,
+                    "price":      round(price, 2) if price else None,
+                    "change_pct": change_pct,
+                })
+            except Exception:
+                results.append({"ticker": ticker, "price": None, "change_pct": None})
+
+    return {"stocks": results}
+
+
 @app.get("/api/servers")
 async def get_servers():
     """Configured external server list (for future monitoring)."""
@@ -471,6 +521,16 @@ async def save_config(body: dict):
                 {"name": str(c["name"]), "url": str(c["url"])}
                 for c in checks
                 if c.get("name") and c.get("url")
+            ]
+        }
+
+    if "stocks" in body:
+        raw_tickers = body["stocks"].get("tickers", [])
+        current["stocks"] = {
+            "tickers": [
+                str(t).upper().strip()
+                for t in raw_tickers
+                if t and str(t).strip()
             ]
         }
 
