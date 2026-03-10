@@ -87,6 +87,37 @@ document.addEventListener('DOMContentLoaded', () => {
     el.addEventListener('mouseleave', () => { active = false; });
   });
 
+  document.querySelectorAll('.overflow-x-auto').forEach(el => {
+    let startX = 0, startLeft = 0, active = false, didScroll = false;
+
+    // Touch events
+    el.addEventListener('touchstart', e => {
+      startX = e.touches[0].clientX; startLeft = el.scrollLeft; active = true; didScroll = false;
+    }, { passive: true });
+    el.addEventListener('touchmove', e => {
+      if (!active) return;
+      const dx = startX - e.touches[0].clientX;
+      if (Math.abs(dx) > 3) { el.scrollLeft = startLeft + dx; didScroll = true; }
+    }, { passive: true });
+    el.addEventListener('touchend', () => { active = false; }, { passive: true });
+
+    // Mouse drag events (touchscreen acting as pointer/mouse)
+    el.addEventListener('mousedown', e => {
+      startX = e.clientX; startLeft = el.scrollLeft; active = true; didScroll = false;
+      e.preventDefault();
+    });
+    el.addEventListener('mousemove', e => {
+      if (!active) return;
+      const dx = startX - e.clientX;
+      if (Math.abs(dx) > 5) { el.scrollLeft = startLeft + dx; didScroll = true; }
+    });
+    el.addEventListener('mouseup', e => {
+      if (didScroll) e.stopPropagation();
+      active = false;
+    });
+    el.addEventListener('mouseleave', () => { active = false; });
+  });
+
   // On-screen keyboard for Pi touchscreen
   let osk = null, oskTarget = null;
 
