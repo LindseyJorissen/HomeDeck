@@ -231,7 +231,7 @@ async def get_weather():
                     "longitude":        lon,
                     "current":          "temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,is_day",
                     "hourly":           "temperature_2m,weather_code,precipitation_probability,is_day",
-                    "daily":            "weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max",
+                    "daily":            "weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset",
                     "temperature_unit": units,
                     "wind_speed_unit":  wind_u,
                     "forecast_days":    7,
@@ -286,6 +286,8 @@ async def get_weather():
     d_max       = daily_raw.get("temperature_2m_max", [])
     d_min       = daily_raw.get("temperature_2m_min", [])
     d_precip    = daily_raw.get("precipitation_probability_max", [])
+    d_sunrise   = daily_raw.get("sunrise", [])
+    d_sunset    = daily_raw.get("sunset", [])
 
     today_str = datetime.now().strftime("%Y-%m-%d")
     DAY_NAMES = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
@@ -306,6 +308,18 @@ async def get_weather():
 
     unit_sym = "°F" if units == "fahrenheit" else "°C"
 
+    def fmt_sun(iso_str):
+        """Format 'YYYY-MM-DDTHH:MM' → '7:23 AM'"""
+        try:
+            t = datetime.strptime(iso_str, "%Y-%m-%dT%H:%M")
+            return f"{t.hour % 12 or 12}:{t.minute:02d} {'AM' if t.hour < 12 else 'PM'}"
+        except Exception:
+            return None
+
+    today_idx = next((i for i, d in enumerate(d_times) if d == today_str), 0)
+    sunrise = fmt_sun(d_sunrise[today_idx]) if today_idx < len(d_sunrise) else None
+    sunset  = fmt_sun(d_sunset[today_idx])  if today_idx < len(d_sunset)  else None
+
     return {
         "location":       loc,
         "temperature":    round(cur.get("temperature_2m", 0)),
@@ -318,6 +332,8 @@ async def get_weather():
         "icon":           icon,
         "forecast":       forecast,
         "daily_forecast": daily_forecast,
+        "sunrise":        sunrise,
+        "sunset":         sunset,
         "timestamp":      datetime.now().isoformat(),
     }
 
