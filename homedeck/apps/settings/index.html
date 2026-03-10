@@ -278,33 +278,41 @@
       ).join('');
     }
 
-    // ── Touch swipe detection ─────────────────────────────────
-    // touch-action:pan-y on each page div tells the browser to only handle
-    // vertical scrolling natively, so horizontal touches reach our listener.
+    // ── Swipe detection (touch + mouse for Pi touchscreen) ───────
     const _vp = document.getElementById('pages-viewport');
-    let _tx0 = 0, _ty0 = 0, _dir = null;
+    let _active = false, _sx = 0, _sy = 0, _dir = null;
 
-    _vp.addEventListener('touchstart', e => {
-      _tx0 = e.touches[0].clientX;
-      _ty0 = e.touches[0].clientY;
-      _dir = null;
-    }, { passive: true });
-
-    _vp.addEventListener('touchmove', e => {
-      const dx = e.touches[0].clientX - _tx0;
-      const dy = e.touches[0].clientY - _ty0;
-      if (_dir === null && (Math.abs(dx) > 4 || Math.abs(dy) > 4)) {
+    function _swipeStart(x, y) {
+      _active = true; _sx = x; _sy = y; _dir = null;
+    }
+    function _swipeMove(x, y, e) {
+      if (!_active) return;
+      const dx = x - _sx, dy = y - _sy;
+      if (_dir === null && (Math.abs(dx) > 3 || Math.abs(dy) > 3))
         _dir = Math.abs(dx) >= Math.abs(dy) ? 'h' : 'v';
+      if (_dir === 'h' && e && e.cancelable) e.preventDefault();
+    }
+    function _swipeEnd(x) {
+      if (!_active) return;
+      _active = false;
+      if (_dir === 'h') {
+        const dx = x - _sx;
+        if (Math.abs(dx) > 35) goToPage(_currentPage + (dx < 0 ? 1 : -1));
       }
-      if (_dir === 'h') e.preventDefault();
-    }, { passive: false });
-
-    _vp.addEventListener('touchend', e => {
-      if (_dir !== 'h') return;
-      const dx = e.changedTouches[0].clientX - _tx0;
-      if (Math.abs(dx) > 40) goToPage(_currentPage + (dx < 0 ? 1 : -1));
       _dir = null;
-    });
+    }
+
+    // Touch events
+    _vp.addEventListener('touchstart',  e => _swipeStart(e.touches[0].clientX, e.touches[0].clientY), { passive: true });
+    _vp.addEventListener('touchmove',   e => _swipeMove(e.touches[0].clientX, e.touches[0].clientY, e), { passive: false });
+    _vp.addEventListener('touchend',    e => _swipeEnd(e.changedTouches[0].clientX));
+    _vp.addEventListener('touchcancel', () => { _active = false; _dir = null; });
+
+    // Mouse events — Pi touchscreen reports touch as mouse pointer events
+    _vp.addEventListener('mousedown',  e => { _swipeStart(e.clientX, e.clientY); e.preventDefault(); });
+    _vp.addEventListener('mousemove',  e => { if (_active) _swipeMove(e.clientX, e.clientY, null); });
+    _vp.addEventListener('mouseup',    e => _swipeEnd(e.clientX));
+    _vp.addEventListener('mouseleave', () => { _active = false; _dir = null; });
 
     renderDots();
 
