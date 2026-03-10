@@ -70,7 +70,6 @@ async function refreshWeather() {
     locText.textContent = data.location;
     locEl.style.display = 'flex';
   }
-  if (card) card.classList.add('card--primary');
 }
 
 async function refreshUptime() {
@@ -91,13 +90,6 @@ async function refreshUptime() {
 
   if (valueEl) valueEl.textContent = `${up} / ${total}`;
   if (subEl)   subEl.textContent = total === 1 ? 'Service Online' : 'Services Online';
-
-  if (card) {
-    card.classList.remove('card--success', 'card--warning', 'card--error');
-    if (up === total && total > 0) card.classList.add('card--success');
-    else if (up === 0 && total > 0) card.classList.add('card--error');
-    else if (total > 0)             card.classList.add('card--warning');
-  }
 
   if (iconEl) {
     const hasErr = up < total && total > 0;
@@ -155,12 +147,6 @@ async function refreshHA() {
   const scenes = data.scenes || [];
   if (countEl) countEl.textContent = scenes.length;
   if (subEl)   subEl.textContent   = scenes.length === 1 ? 'Scene Available' : 'Scenes Available';
-
-  if (card) {
-    card.classList.remove('card--success', 'card--warning', 'card--error');
-    if (data.connected)        card.classList.add('card--success');
-    else if (scenes.length > 0) card.classList.add('card--warning');
-  }
 }
 
 async function refreshStocks() {

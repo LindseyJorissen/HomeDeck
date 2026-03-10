@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>Stocks — HomeDeck</title>
+  <link rel="stylesheet" href="../../css/styles.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            bg:      'var(--bg)',
+            surface: 'var(--surface)',
+            raised:  'var(--surface-raised)',
+            primary: 'var(--primary)',
+            success: 'var(--success)',
+            warning: 'var(--warning)',
+            error:   'var(--error)',
+            text:    'var(--text)',
+            muted:   'var(--text-secondary)',
+            border:  'var(--border)',
+          },
+          borderRadius: {
+            card: 'var(--radius)',
+            sm:   'var(--radius-sm)',
+            xs:   'var(--radius-xs)',
+          },
+          boxShadow: {
+            app:  'var(--shadow)',
+            hover:'var(--shadow-hover)',
+            card: 'var(--shadow-card)',
+          },
+        }
+      }
+    }
+  </script>
+</head>
+<body>
+  <div class="flex flex-col h-screen overflow-hidden">
+
+    <header class="flex items-center px-6 py-[14px] bg-surface border-b border-border shadow-app gap-[14px] flex-shrink-0 z-10">
+      <button class="w-11 h-11 min-w-[44px] border-none bg-bg rounded-sm cursor-pointer flex items-center justify-center text-[1.4rem] text-text transition-all duration-[180ms] hover:bg-border active:scale-[0.92] flex-shrink-0"
+              onclick="window.location.href='../../index.html'">←</button>
+      <span class="text-[1.45rem] font-bold text-text flex items-center gap-2">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+          <path d="M2 13L6.5 8L9.5 11L14 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Stocks
+      </span>
+      <button class="btn btn--secondary btn--sm ml-auto" onclick="refresh()" id="refresh-btn">
+        <img src="../../assets/icons/refresh.svg" width="16" height="16" alt="Refresh" />
+      </button>
+    </header>
+
+    <div class="flex-1 overflow-y-auto p-5">
+      <div id="stocks-container" class="flex flex-col gap-3 max-w-[700px] mx-auto">
+        <div class="text-[0.88rem] text-muted text-center py-8">Loading…</div>
+      </div>
+      <div id="last-updated" class="text-[0.75rem] text-muted text-center mt-4 opacity-60"></div>
+    </div>
+
+  </div>
+
+  <script src="../../js/utils.js"></script>
+  <script>
+    async function refresh() {
+      const btn = document.getElementById('refresh-btn');
+      if (btn) btn.disabled = true;
+
+      const container = document.getElementById('stocks-container');
+      container.innerHTML = '<div class="text-[0.88rem] text-muted text-center py-8">Loading…</div>';
+
+      const data = await fetchAPI('/api/stocks');
+      const stocks = data?.stocks || [];
+
+      if (!stocks.length) {
+        container.innerHTML = `
+          <div class="bg-surface rounded-card shadow-card border border-border p-8 text-center slide-up">
+            <div class="text-[1rem] font-semibold text-text mb-1">No stocks configured</div>
+            <div class="text-[0.85rem] text-muted">Add tickers in Settings → Stocks</div>
+          </div>`;
+        if (btn) btn.disabled = false;
+        return;
+      }
+
+      container.innerHTML = stocks.map((s, i) => {
+        const chg    = s.change_pct;
+        const up     = chg != null && chg >= 0;
+        const down   = chg != null && chg < 0;
+        const sign   = up ? '+' : '';
+        const chgStr = chg != null ? `${sign}${chg}%` : '--';
+        const chgColor = up ? 'var(--success)' : down ? 'var(--error)' : 'var(--text-secondary)';
+        const arrowSvg = up
+          ? `<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 10L6 5.5L9 8L12 4" stroke="var(--success)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`
+          : down
+          ? `<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 4L6 8.5L9 6L12 10" stroke="var(--error)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`
+          : '';
+
+        return `
+          <div class="bg-surface rounded-card shadow-card border border-border p-5 flex items-center gap-4 slide-up" style="animation-delay:${i * 0.05}s">
+            <div class="flex-1 min-w-0">
+              <div class="text-[1.2rem] font-bold text-text">${escHtml(s.ticker)}</div>
+            </div>
+            <div class="flex items-center gap-2">
+              ${arrowSvg}
+              <div class="text-[1.3rem] font-bold" style="color:${chgColor}">${chgStr}</div>
+            </div>
+            <div class="text-right min-w-[70px]">
+              <div class="text-[1rem] font-semibold text-text">${s.price != null ? '$' + s.price : '--'}</div>
+            </div>
+          </div>`;
+      }).join('');
+
+      const lu = document.getElementById('last-updated');
+      if (lu) lu.textContent = `Updated ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+
+      if (btn) btn.disabled = false;
+    }
+
+    function escHtml(s) {
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    refresh();
+  </script>
+</body>
+</html>
