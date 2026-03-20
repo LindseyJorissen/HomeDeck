@@ -55,7 +55,7 @@
       <div id="pages-track" class="flex h-full" style="width:500%;will-change:transform;transition:transform 0.3s ease">
 
         <!-- ── PAGE 0: Weather ─────────────────────────────── -->
-        <div class="h-full" style="width:20%;flex-shrink:0;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y">
+        <div class="h-full" style="width:20%;flex-shrink:0;overflow-y:auto;-webkit-overflow-scrolling:touch">
           <div class="bg-surface rounded-card shadow-card border border-border overflow-hidden mx-3 mt-3 mb-3">
             <div class="px-4 py-2 border-b border-border text-[0.72rem] font-extrabold uppercase tracking-[0.8px] text-muted bg-raised flex items-center gap-2">
               <img src="../../assets/icons/cloud_with_sun.svg" width="16" height="16" alt="" /> Weather
@@ -100,7 +100,7 @@
         </div>
 
         <!-- ── PAGE 1: Uptime Monitor ──────────────────────── -->
-        <div class="h-full" style="width:20%;flex-shrink:0;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y">
+        <div class="h-full" style="width:20%;flex-shrink:0;overflow-y:auto;-webkit-overflow-scrolling:touch">
           <div class="bg-surface rounded-card shadow-card border border-border overflow-hidden mx-3 mt-3 mb-3">
             <div class="px-4 py-2 border-b border-border text-[0.72rem] font-extrabold uppercase tracking-[0.8px] text-muted bg-raised flex items-center gap-2">
               <img src="../../assets/icons/hourglass.svg" width="16" height="16" alt="" /> Uptime Monitor
@@ -115,7 +115,7 @@
         </div>
 
         <!-- ── PAGE 2: Home Assistant ──────────────────────── -->
-        <div class="h-full" style="width:20%;flex-shrink:0;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y">
+        <div class="h-full" style="width:20%;flex-shrink:0;overflow-y:auto;-webkit-overflow-scrolling:touch">
           <div class="bg-surface rounded-card shadow-card border border-border mx-3 mt-3 mb-3">
             <div class="px-4 py-2 border-b border-border text-[0.72rem] font-extrabold uppercase tracking-[0.8px] text-muted bg-raised flex items-center gap-2 rounded-t-card">
               <img src="../../assets/icons/house.svg" width="16" height="16" alt="" /> Home Assistant
@@ -180,7 +180,7 @@
         </div>
 
         <!-- ── PAGE 3: Stocks ─────────────────────────────── -->
-        <div class="h-full" style="width:20%;flex-shrink:0;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y">
+        <div class="h-full" style="width:20%;flex-shrink:0;overflow-y:auto;-webkit-overflow-scrolling:touch">
           <div class="bg-surface rounded-card shadow-card border border-border overflow-hidden mx-3 mt-3 mb-3">
             <div class="px-4 py-2 border-b border-border text-[0.72rem] font-extrabold uppercase tracking-[0.8px] text-muted bg-raised flex items-center gap-2">
               <img src="../../assets/icons/sunrise.svg" width="16" height="16" alt="" /> Stocks
@@ -194,7 +194,7 @@
         </div>
 
         <!-- ── PAGE 4: Dashboard Cards ────────────────────── -->
-        <div class="h-full" style="width:20%;flex-shrink:0;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y">
+        <div class="h-full" style="width:20%;flex-shrink:0;overflow-y:auto;-webkit-overflow-scrolling:touch">
           <div class="bg-surface rounded-card shadow-card border border-border overflow-hidden mx-3 mt-3 mb-3">
             <div class="px-4 py-2 border-b border-border text-[0.72rem] font-extrabold uppercase tracking-[0.8px] text-muted bg-raised flex items-center gap-2">
               <img src="../../assets/icons/monitor.svg" width="16" height="16" alt="" /> Dashboard Cards
@@ -290,7 +290,7 @@
       const dx = x - _sx, dy = y - _sy;
       if (_dir === null && (Math.abs(dx) > 3 || Math.abs(dy) > 3))
         _dir = Math.abs(dx) >= Math.abs(dy) ? 'h' : 'v';
-      if (_dir === 'h' && e && e.cancelable) e.preventDefault();
+      if (_dir === 'h' && Math.abs(x - _sx) > 10 && e && e.cancelable) e.preventDefault();
     }
     function _swipeEnd(x) {
       if (!_active) return;
