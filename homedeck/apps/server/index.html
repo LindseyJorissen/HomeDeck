@@ -147,10 +147,12 @@
         if (sys.cpu_temp != null) {
           const t = sys.cpu_temp;
           let label, color, bg;
-          if (t < 60)      { label = 'Cool';       color = '#1E6E3A'; bg = 'var(--success-light)'; }
-          else if (t < 70) { label = 'Warm';        color = '#7a5a00'; bg = '#fff7cc'; }
-          else if (t < 80) { label = 'Hot';         color = '#7a3300'; bg = '#ffe6cc'; }
-          else             { label = 'Throttling!'; color = '#fff';    bg = 'var(--error)'; }
+          if (t < 50)      { label = 'Ideal';       color = '#1E6E3A'; bg = 'var(--success-light)'; }
+          else if (t < 70) { label = 'Healthy';     color = '#1E6E3A'; bg = 'var(--success-light)'; }
+          else if (t < 80) { label = 'Getting Warm'; color = '#7a5a00'; bg = '#fff7cc'; }
+          else if (t < 85) { label = 'Hot';          color = '#7a3300'; bg = '#ffe6cc'; }
+          else if (t < 90) { label = 'Too Hot';      color = '#fff';    bg = '#e06000'; }
+          else             { label = 'Critical!';    color = '#fff';    bg = 'var(--error)'; }
           document.getElementById('cpu-temp').innerHTML =
             `<img src="../../assets/icons/thermometer.svg" width="14" height="14" alt="" />` +
             ` <span style="font-weight:700">${t}°C</span>` +
