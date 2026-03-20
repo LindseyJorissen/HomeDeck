@@ -2,9 +2,8 @@
 .ha-banner--err { background: var(--warning-light);  color: #7A5C00; border: 1px solid var(--warning); }
 .ha-banner--cfg { background: var(--primary-light);  color: #4B5563; border: 1px solid #D1D5DB; }
 .scene-card.loading { pointer-events: none; opacity: 0.7; }
-.scene-card.success { border-color: var(--success) !important; background: var(--success-light) !important; }
+.scene-card.active  { border-color: var(--primary) !important; background: var(--primary-light, rgba(99,102,241,0.08)) !important; }
 .scene-card.error   { border-color: var(--error)   !important; background: var(--error-light)   !important; }
 .scene-card:hover .scene-icon { transform: scale(1.1); }
 .scene-card.loading .scene-feedback,
-.scene-card.success .scene-feedback,
 .scene-card.error   .scene-feedback { opacity: 1; }

@@ -132,6 +132,8 @@
         </div>`).join('');
     }
 
+    let _activeIdx = null;
+
     async function activateScene(entityId, idx) {
       const card = document.getElementById(`scene-${idx}`);
       const fb   = document.getElementById(`fb-${idx}`);
@@ -142,20 +144,18 @@
       const result = await fetchAPI(`/api/ha/scene/${encodeURIComponent(entityId)}`, { method: 'POST' });
 
       card.classList.remove('loading');
+      fb.innerHTML = '';
 
       if (result?.ok) {
-        card.classList.add('success');
-        fb.innerHTML = '<img src="../../assets/icons/check_mark.svg" width="16" height="16" alt="" />';
-        setTimeout(() => {
-          card.classList.remove('success');
-          fb.textContent = '';
-        }, 1800);
+        if (_activeIdx !== null) document.getElementById(`scene-${_activeIdx}`)?.classList.remove('active');
+        _activeIdx = idx;
+        card.classList.add('active');
       } else {
         card.classList.add('error');
         fb.innerHTML = '<img src="../../assets/icons/x_mark.svg" width="16" height="16" alt="" />';
         setTimeout(() => {
           card.classList.remove('error');
-          fb.textContent = '';
+          fb.innerHTML = '';
         }, 2500);
       }
     }
