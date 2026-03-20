@@ -407,9 +407,10 @@ async def _ha_request(method: str, path: str, **kwargs):
     headers = {
         "Authorization": f"Bearer {token}",
         "Content-Type":  "application/json",
+        "User-Agent":    "Mozilla/5.0 (HomeDeck/1.0)",
     }
     try:
-        async with httpx.AsyncClient(timeout=5.0) as client:
+        async with httpx.AsyncClient(timeout=10.0, follow_redirects=True) as client:
             resp = await getattr(client, method)(f"{url}{path}", headers=headers, **kwargs)
             return resp, None
     except Exception as exc:
@@ -442,7 +443,10 @@ async def ha_list_scenes():
     if resp.status_code != 200:
         return {"ok": False, "error": f"HTTP {resp.status_code}", "scenes": []}
 
-    states = resp.json()
+    try:
+        states = resp.json()
+    except Exception:
+        return {"ok": False, "error": f"HA returned non-JSON (HTTP {resp.status_code}) — check URL or Cloudflare settings", "scenes": []}
     scenes = [
         {
             "entity_id": s["entity_id"],

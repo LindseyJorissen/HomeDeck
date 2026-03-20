@@ -719,6 +719,7 @@
       }).join('');
 
       picker.classList.remove('hidden');
+      picker.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 
     function closePicker() {
