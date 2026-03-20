@@ -131,6 +131,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const kbd = document.createElement('div');
     kbd.style.cssText = 'position:fixed;bottom:0;left:0;width:100%;background:var(--surface);border-top:1px solid var(--border);padding:6px 4px 4px;z-index:99999;display:none;touch-action:none;box-shadow:0 -4px 16px rgba(0,0,0,0.3)';
     const btnStyle = 'flex:1;height:44px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:var(--radius-xs);font-size:1rem;cursor:pointer;touch-action:manipulation;min-width:0';
+    let shiftOn = false;
+    const charBtns = [];
     const inject = (ch) => {
       if (!oskTarget) return;
       const s = oskTarget.selectionStart, v = oskTarget.value;
@@ -138,20 +140,30 @@ document.addEventListener('DOMContentLoaded', () => {
       oskTarget.setSelectionRange(s + ch.length, s + ch.length);
       oskTarget.dispatchEvent(new Event('input', { bubbles: true }));
     };
+    const updateShift = () => {
+      charBtns.forEach(({ btn, key }) => { btn.textContent = shiftOn ? key.toUpperCase() : key; });
+      shiftBtn.style.background = shiftOn ? 'var(--primary)' : 'var(--bg)';
+    };
     rows.forEach(row => {
       const r = document.createElement('div');
       r.style.cssText = 'display:flex;gap:3px;margin-bottom:3px;justify-content:center';
       row.forEach(k => {
         const b = document.createElement('button');
         b.textContent = k; b.style.cssText = btnStyle;
-        b.addEventListener('mousedown', e => { e.preventDefault(); inject(k); });
-        b.addEventListener('touchstart', e => { e.preventDefault(); inject(k); }, { passive: false });
+        b.addEventListener('mousedown', e => { e.preventDefault(); inject(shiftOn ? k.toUpperCase() : k); shiftOn = false; updateShift(); });
+        b.addEventListener('touchstart', e => { e.preventDefault(); inject(shiftOn ? k.toUpperCase() : k); shiftOn = false; updateShift(); }, { passive: false });
+        charBtns.push({ btn: b, key: k });
         r.appendChild(b);
       });
       kbd.appendChild(r);
     });
     const bot = document.createElement('div');
     bot.style.cssText = 'display:flex;gap:3px';
+    const shiftBtn = document.createElement('button');
+    shiftBtn.textContent = '⇧'; shiftBtn.style.cssText = btnStyle + ';flex:1.5';
+    shiftBtn.addEventListener('mousedown', e => { e.preventDefault(); shiftOn = !shiftOn; updateShift(); });
+    shiftBtn.addEventListener('touchstart', e => { e.preventDefault(); shiftOn = !shiftOn; updateShift(); }, { passive: false });
+    bot.appendChild(shiftBtn);
     [['https://', 'https://', 2, () => inject('https://')],
      ['Space', '  space  ', 2.5, () => inject(' ')],
      ['⌫', '⌫', 1.5, () => { if (!oskTarget) return; const s = oskTarget.selectionStart; if (s > 0) { const v = oskTarget.value; oskTarget.value = v.slice(0,s-1)+v.slice(s); oskTarget.setSelectionRange(s-1,s-1); oskTarget.dispatchEvent(new Event('input',{bubbles:true})); } }],
