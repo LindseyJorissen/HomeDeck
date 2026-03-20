@@ -152,7 +152,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     const bot = document.createElement('div');
     bot.style.cssText = 'display:flex;gap:3px';
-    [['Space', '  space  ', 4, () => inject(' ')],
+    [['https://', 'https://', 2, () => inject('https://')],
+     ['Space', '  space  ', 2.5, () => inject(' ')],
      ['⌫', '⌫', 1.5, () => { if (!oskTarget) return; const s = oskTarget.selectionStart; if (s > 0) { const v = oskTarget.value; oskTarget.value = v.slice(0,s-1)+v.slice(s); oskTarget.setSelectionRange(s-1,s-1); oskTarget.dispatchEvent(new Event('input',{bubbles:true})); } }],
      ['Done', '✓ Done', 1.5, () => { kbd.style.display='none'; if(oskTarget) oskTarget.blur(); oskTarget=null; }]
     ].forEach(([,label, flex, fn]) => {
