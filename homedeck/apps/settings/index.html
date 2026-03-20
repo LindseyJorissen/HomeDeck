@@ -309,7 +309,7 @@
     _vp.addEventListener('touchcancel', () => { _active = false; _dir = null; });
 
     // Mouse events — Pi touchscreen reports touch as mouse pointer events
-    _vp.addEventListener('mousedown',  e => { _swipeStart(e.clientX, e.clientY); e.preventDefault(); });
+    _vp.addEventListener('mousedown',  e => { _swipeStart(e.clientX, e.clientY); if (!e.target.closest('input,select,textarea,button,label')) e.preventDefault(); });
     _vp.addEventListener('mousemove',  e => { if (_active) _swipeMove(e.clientX, e.clientY, null); });
     _vp.addEventListener('mouseup',    e => _swipeEnd(e.clientX));
     _vp.addEventListener('mouseleave', () => { _active = false; _dir = null; });
