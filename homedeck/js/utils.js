@@ -126,7 +126,7 @@ document.addEventListener('DOMContentLoaded', () => {
       ['1','2','3','4','5','6','7','8','9','0'],
       ['q','w','e','r','t','y','u','i','o','p'],
       ['a','s','d','f','g','h','j','k','l'],
-      ['z','x','c','v','b','n','m','-','.','/','@'],
+      ['z','x','c','v','b','n','m','-','.','/','@',':'],
     ];
     const kbd = document.createElement('div');
     kbd.style.cssText = 'position:fixed;bottom:0;left:0;width:100%;background:var(--surface);border-top:1px solid var(--border);padding:6px 4px 4px;z-index:99999;display:none;touch-action:none;box-shadow:0 -4px 16px rgba(0,0,0,0.3)';
