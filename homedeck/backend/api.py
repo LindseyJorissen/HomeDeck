@@ -3,6 +3,7 @@
 import asyncio
 import json
 import os
+import re
 import socket
 import subprocess
 import time
@@ -96,14 +97,44 @@ def _format_uptime(seconds: float) -> str:
     if h > 0:  return f"{h}h {m}m"
     return f"{m}m"
 
-def _count_network_devices() -> int:
-    """Count devices visible in the ARP table (Pi/Linux only)."""
+def _list_network_devices() -> list:
+    """Return list of {ip, mac, interface} from the ARP table (Pi/Linux only)."""
     try:
         with open("/proc/net/arp") as f:
             lines = f.readlines()[1:]  # skip header
-        return len([l for l in lines if l.strip() and l.split()[2] != "0x0"])
+        devices = []
+        for line in lines:
+            parts = line.split()
+            if len(parts) >= 4 and parts[2] != "0x0":
+                devices.append({
+                    "ip":        parts[0],
+                    "mac":       parts[3],
+                    "interface": parts[5] if len(parts) > 5 else None,
+                })
+        return devices
     except Exception:
-        return 0
+        return []
+
+
+def _get_wifi_info() -> dict:
+    """Get WiFi SSID and signal strength via iwconfig (Pi/Linux only)."""
+    try:
+        result = subprocess.run(
+            ["iwconfig", "wlan0"],
+            capture_output=True, text=True, timeout=3
+        )
+        output = result.stdout
+        ssid = None
+        signal_dbm = None
+        ssid_match = re.search(r'ESSID:"([^"]*)"', output)
+        if ssid_match:
+            ssid = ssid_match.group(1) or None
+        sig_match = re.search(r'Signal level=(-\d+)\s*dBm', output)
+        if sig_match:
+            signal_dbm = int(sig_match.group(1))
+        return {"ssid": ssid, "signal_dbm": signal_dbm}
+    except Exception:
+        return {"ssid": None, "signal_dbm": None}
 
 def _local_ip() -> str:
     try:
@@ -198,14 +229,18 @@ async def get_system():
 
 @app.get("/api/network")
 async def get_network():
-    """Internet reachability and local network info."""
+    """Internet reachability, WiFi info, and local network devices."""
     internet = await _check_internet()
+    devices  = _list_network_devices()
+    wifi     = _get_wifi_info()
     return {
         "internet":     internet,
         "local":        True,
         "local_ip":     _local_ip(),
         "hostname":     socket.gethostname(),
-        "device_count": _count_network_devices(),
+        "device_count": len(devices),
+        "devices":      devices,
+        "wifi":         wifi,
         "timestamp":    datetime.now().isoformat(),
     }
 

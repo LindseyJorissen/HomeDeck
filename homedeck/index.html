@@ -162,16 +162,19 @@
         </div>
       </div>
 
-      <div class="card bg-surface rounded-card shadow-card border border-transparent hover:-translate-y-[3px] hover:shadow-hover hover:border-border active:scale-[0.97] transition-[transform,box-shadow,border-color] duration-[180ms] p-5 flex flex-col min-w-0"
-           id="card-network">
-        <div class="flex items-center gap-1.5 text-[0.72rem] font-bold text-muted uppercase tracking-[0.7px] flex-shrink-0">
-          <svg width="14" height="11" viewBox="0 0 20 16" fill="none">
-            <path d="M1 5C5.5 0.5 14.5 0.5 19 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            <path d="M3.5 8C6.5 5 13.5 5 16.5 8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            <path d="M6.5 11C8 9.5 12 9.5 13.5 11" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            <circle cx="10" cy="14.5" r="1.5" fill="currentColor"/>
-          </svg>
-          Network
+      <div class="card bg-surface rounded-card shadow-card border border-transparent hover:-translate-y-[3px] hover:shadow-hover hover:border-border active:scale-[0.97] transition-[transform,box-shadow,border-color] duration-[180ms] cursor-pointer p-5 flex flex-col min-w-0"
+           id="card-network" onclick="openApp('network')">
+        <div class="flex justify-between items-center flex-shrink-0">
+          <div class="flex items-center gap-1.5 text-[0.72rem] font-bold text-muted uppercase tracking-[0.7px]">
+            <svg width="14" height="11" viewBox="0 0 20 16" fill="none">
+              <path d="M1 5C5.5 0.5 14.5 0.5 19 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <path d="M3.5 8C6.5 5 13.5 5 16.5 8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <path d="M6.5 11C8 9.5 12 9.5 13.5 11" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <circle cx="10" cy="14.5" r="1.5" fill="currentColor"/>
+            </svg>
+            Network
+          </div>
+          <span class="text-muted text-[1.1rem] leading-none">›</span>
         </div>
         <div class="flex-1 flex items-center min-h-0">
           <div class="text-[1.9rem] font-bold text-text leading-none" id="network-devices">--</div>

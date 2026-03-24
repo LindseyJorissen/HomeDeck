@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>Network — HomeDeck</title>
+  <link rel="stylesheet" href="../../css/styles.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            bg:      'var(--bg)',
+            surface: 'var(--surface)',
+            raised:  'var(--surface-raised)',
+            primary: 'var(--primary)',
+            success: 'var(--success)',
+            warning: 'var(--warning)',
+            error:   'var(--error)',
+            text:    'var(--text)',
+            muted:   'var(--text-secondary)',
+            border:  'var(--border)',
+          },
+          borderRadius: {
+            card: 'var(--radius)',
+            sm:   'var(--radius-sm)',
+            xs:   'var(--radius-xs)',
+          },
+          boxShadow: {
+            app:  'var(--shadow)',
+            hover:'var(--shadow-hover)',
+            card: 'var(--shadow-card)',
+          },
+        }
+      }
+    }
+  </script>
+  <style>
+    .signal-bars {
+      display: flex;
+      align-items: flex-end;
+      gap: 3px;
+      height: 20px;
+    }
+    .signal-bar {
+      width: 5px;
+      border-radius: 2px;
+      background: var(--border);
+    }
+    .signal-bar.active { background: var(--success); }
+    .signal-bar.active.warn { background: var(--warning); }
+    .signal-bar.active.poor { background: var(--error); }
+    .signal-bar:nth-child(1) { height: 5px; }
+    .signal-bar:nth-child(2) { height: 9px; }
+    .signal-bar:nth-child(3) { height: 14px; }
+    .signal-bar:nth-child(4) { height: 20px; }
+  </style>
+</head>
+<body>
+  <div class="flex flex-col h-screen overflow-hidden">
+
+    <header class="flex items-center px-6 py-[14px] bg-surface border-b border-border shadow-app gap-[14px] flex-shrink-0 z-10">
+      <button class="w-11 h-11 min-w-[44px] border-none bg-bg rounded-sm cursor-pointer flex items-center justify-center text-[1.4rem] text-text transition-all duration-[180ms] hover:bg-border active:scale-[0.92] flex-shrink-0"
+              onclick="window.location.href='../../index.html'">←</button>
+      <span class="text-[1.45rem] font-bold text-text flex items-center gap-2">
+        <svg width="20" height="16" viewBox="0 0 20 16" fill="none">
+          <path d="M1 5C5.5 0.5 14.5 0.5 19 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <path d="M3.5 8C6.5 5 13.5 5 16.5 8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <path d="M6.5 11C8 9.5 12 9.5 13.5 11" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <circle cx="10" cy="14.5" r="1.5" fill="currentColor"/>
+        </svg>
+        Network
+      </span>
+      <button class="btn btn--secondary btn--sm ml-auto" onclick="load()" id="refresh-btn">
+        <img src="../../assets/icons/refresh.svg" width="16" height="16" alt="Refresh" />
+      </button>
+    </header>
+
+    <div class="flex-1 overflow-y-auto p-6" id="content">
+
+      <!-- WiFi info card -->
+      <div class="bg-surface rounded-sm p-5 mb-[14px] shadow-card border border-border slide-up" style="animation-delay:0.05s">
+        <div class="text-[0.77rem] font-bold uppercase tracking-[0.8px] text-muted mb-4">WiFi</div>
+        <div class="flex items-center justify-between">
+          <div>
+            <div class="text-[1.4rem] font-bold text-text leading-none" id="wifi-ssid">–</div>
+            <div class="text-[0.85rem] text-muted mt-1.5" id="wifi-signal-text">No signal data</div>
+          </div>
+          <div class="flex flex-col items-center gap-2">
+            <div class="signal-bars" id="signal-bars">
+              <div class="signal-bar" id="bar1"></div>
+              <div class="signal-bar" id="bar2"></div>
+              <div class="signal-bar" id="bar3"></div>
+              <div class="signal-bar" id="bar4"></div>
+            </div>
+            <div class="text-[0.72rem] font-bold text-muted" id="wifi-dbm"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Connection info -->
+      <div class="text-[0.77rem] font-bold uppercase tracking-[0.8px] text-muted mb-3 mt-6">Connection</div>
+      <div class="grid grid-cols-2 gap-3 mb-6">
+        <div class="bg-surface rounded-sm p-4 shadow-card border border-border slide-up" style="animation-delay:0.10s">
+          <div class="text-[0.75rem] uppercase tracking-[0.5px] text-muted">Internet</div>
+          <div class="flex items-center gap-2 mt-1.5">
+            <span class="status-dot checking" id="internet-status-dot"></span>
+            <div class="text-[1.05rem] font-semibold" id="internet-status-text">–</div>
+          </div>
+        </div>
+        <div class="bg-surface rounded-sm p-4 shadow-card border border-border slide-up" style="animation-delay:0.12s">
+          <div class="text-[0.75rem] uppercase tracking-[0.5px] text-muted">Local IP</div>
+          <div class="text-[1.05rem] font-semibold mt-1.5" id="info-ip">–</div>
+        </div>
+        <div class="bg-surface rounded-sm p-4 shadow-card border border-border slide-up" style="animation-delay:0.14s">
+          <div class="text-[0.75rem] uppercase tracking-[0.5px] text-muted">Hostname</div>
+          <div class="text-[1.05rem] font-semibold mt-1.5" id="info-hostname">–</div>
+        </div>
+        <div class="bg-surface rounded-sm p-4 shadow-card border border-border slide-up" style="animation-delay:0.16s">
+          <div class="text-[0.75rem] uppercase tracking-[0.5px] text-muted">Devices</div>
+          <div class="text-[1.05rem] font-semibold mt-1.5" id="info-device-count">–</div>
+        </div>
+      </div>
+
+      <!-- Device list -->
+      <div class="text-[0.77rem] font-bold uppercase tracking-[0.8px] text-muted mb-3">Connected Devices</div>
+      <div id="devices-list">
+        <div class="text-[0.85rem] text-muted">Loading…</div>
+      </div>
+
+      <div class="text-[0.75rem] text-muted text-center mt-4 pb-2" id="last-updated"></div>
+    </div>
+  </div>
+
+  <script src="../../js/utils.js"></script>
+  <script>
+    function setSignalBars(dbm) {
+      const cls = dbm == null ? '' : dbm > -55 ? 'active' : dbm > -65 ? 'active warn' : 'active poor';
+      const bars = dbm == null ? 0 : dbm > -55 ? 4 : dbm > -65 ? 3 : dbm > -75 ? 2 : 1;
+      for (let i = 1; i <= 4; i++) {
+        const el = document.getElementById('bar' + i);
+        if (!el) continue;
+        el.className = 'signal-bar' + (i <= bars ? ' ' + cls : '');
+      }
+    }
+
+    async function load() {
+      const data = await fetchAPI('/api/network');
+      if (!data) return;
+
+      // WiFi
+      const wifi = data.wifi || {};
+      document.getElementById('wifi-ssid').textContent = wifi.ssid || 'Not connected';
+      if (wifi.signal_dbm != null) {
+        const dbm = wifi.signal_dbm;
+        const quality = dbm > -55 ? 'Excellent' : dbm > -65 ? 'Good' : dbm > -75 ? 'Fair' : 'Poor';
+        document.getElementById('wifi-signal-text').textContent = `Signal: ${quality}`;
+        document.getElementById('wifi-dbm').textContent = `${dbm} dBm`;
+        setSignalBars(dbm);
+      } else {
+        document.getElementById('wifi-signal-text').textContent = 'Signal data unavailable';
+        setSignalBars(null);
+      }
+
+      // Connection info
+      const dot = document.getElementById('internet-status-dot');
+      const txt = document.getElementById('internet-status-text');
+      if (dot) dot.className = `status-dot ${data.internet ? 'online' : 'offline'}`;
+      if (txt) txt.textContent = data.internet ? 'Online' : 'Offline';
+
+      document.getElementById('info-ip').textContent       = data.local_ip  || '–';
+      document.getElementById('info-hostname').textContent = data.hostname   || '–';
+      document.getElementById('info-device-count').textContent = (data.device_count ?? '–') + (data.device_count === 1 ? ' device' : ' devices');
+
+      // Device list
+      const listEl = document.getElementById('devices-list');
+      const devices = data.devices || [];
+      if (!devices.length) {
+        listEl.innerHTML = '<div class="text-[0.85rem] text-muted">No devices found in ARP table</div>';
+      } else {
+        listEl.innerHTML = devices.map((d, i) => `
+          <div class="bg-surface rounded-sm px-4 py-3 shadow-card border border-border flex items-center justify-between gap-4 slide-up mb-2"
+               style="animation-delay:${0.05 + i * 0.04}s">
+            <div class="flex flex-col gap-0.5 min-w-0">
+              <div class="text-[0.95rem] font-semibold text-text truncate">${d.ip}</div>
+              <div class="text-[0.75rem] text-muted font-mono">${d.mac}</div>
+            </div>
+            ${d.interface ? `<div class="text-[0.72rem] font-bold text-muted uppercase bg-bg border border-border rounded-xs px-2 py-0.5 flex-shrink-0">${d.interface}</div>` : ''}
+          </div>
+        `).join('');
+      }
+
+      setLastUpdated('last-updated', new Date());
+    }
+
+    load();
+    setInterval(load, 10_000);
+  </script>
+</body>
+</html>
