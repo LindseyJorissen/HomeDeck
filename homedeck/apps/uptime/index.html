@@ -149,27 +149,23 @@
       }
 
       list.innerHTML = services.map((s, i) => {
-        const isUp      = s.status === 'up';
-        const icon      = isUp ? '<img src="../../assets/icons/check_mark.svg" width="20" height="20" alt="up" />' : '<img src="../../assets/icons/x_mark.svg" width="20" height="20" alt="down" />';
-        const ms        = s.response_ms;
-        const msClass   = ms == null ? '' : ms > 1000 ? 'bad' : ms > 500 ? 'slow' : '';
-        const msText    = ms != null ? `${ms} ms` : '–';
-        const errText   = s.error ? ` (${s.error})` : '';
-        const checkedAt = s.checked_at ? new Date(s.checked_at).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'}) : '';
+        const isUp    = s.status === 'up';
+        const ms      = s.response_ms;
+        const msClass = ms == null ? '' : ms > 1000 ? 'bad' : ms > 500 ? 'slow' : '';
+        const msText  = ms != null ? `${ms} ms` : '–';
+        const errText = s.error ? ` · ${s.error}` : '';
 
         return `
-          <div class="bg-surface rounded-sm px-[18px] py-[15px] mb-2.5 shadow-card flex items-center gap-[14px] border border-border slide-up"
+          <div class="bg-surface rounded-sm px-[18px] py-[13px] mb-2.5 shadow-card flex items-center gap-3 border border-border slide-up"
                style="animation-delay:${i * 0.05}s">
-            <div class="flex-shrink-0 w-8 text-center text-[1.6rem]">${icon}</div>
             <div class="flex-1 min-w-0">
               <div class="text-[1rem] font-semibold whitespace-nowrap overflow-hidden text-ellipsis">${s.name}</div>
-              <div class="text-[0.8rem] text-muted mt-0.5 whitespace-nowrap overflow-hidden text-ellipsis">${s.url}${errText}</div>
+              <div class="text-[0.78rem] text-muted mt-0.5 whitespace-nowrap overflow-hidden text-ellipsis">${s.url}${errText}</div>
             </div>
-            <div class="text-right flex-shrink-0">
-              <div class="response-time text-[0.95rem] font-bold text-text ${msClass}">${msText}</div>
-              <div class="text-[0.75rem] text-muted mt-0.5">${checkedAt}</div>
+            <div class="text-right flex-shrink-0 flex items-center gap-3">
+              <div class="response-time text-[0.9rem] font-bold text-text ${msClass}">${msText}</div>
+              <span class="badge badge--${isUp ? 'up' : 'down'}">${isUp ? '● UP' : '● DOWN'}</span>
             </div>
-            <span class="badge badge--${isUp ? 'up' : 'down'}">${isUp ? '● UP' : '● DOWN'}</span>
           </div>`;
       }).join('');
 
