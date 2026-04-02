@@ -97,6 +97,17 @@ async function refreshUptime() {
       ? 'assets/icons/x_mark.svg'
       : 'assets/icons/check_mark.svg';
   }
+
+  const overlay = document.getElementById('server-down-overlay');
+  if (overlay) {
+    if (total > 0 && up === 0) {
+      const det = document.getElementById('down-detail-home');
+      if (det) det.textContent = `All ${total} service${total > 1 ? 's' : ''} offline`;
+      overlay.style.display = 'flex';
+    } else {
+      overlay.style.display = 'none';
+    }
+  }
 }
 
 async function refreshSystem() {

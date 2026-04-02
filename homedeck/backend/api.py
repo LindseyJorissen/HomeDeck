@@ -33,7 +33,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-CONFIG_PATH = Path(__file__).parent / "config.json"
+CONFIG_PATH  = Path(__file__).parent / "config.json"
+HISTORY_PATH = Path(__file__).parent / "uptime_history.json"
 
 _DEFAULT_CONFIG = {
     "weather": {
@@ -54,6 +55,24 @@ _DEFAULT_CONFIG = {
     },
     "servers": [],
 }
+
+def _load_uptime_history() -> list:
+    try:
+        with open(HISTORY_PATH) as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return []
+
+def _save_uptime_history(results: list) -> None:
+    history = _load_uptime_history()
+    cutoff  = datetime.now().timestamp() - 7 * 86400
+    history = [e for e in history if datetime.fromisoformat(e["ts"]).timestamp() > cutoff]
+    history.append({
+        "ts":      datetime.now().isoformat(),
+        "results": [{"name": r["name"], "url": r["url"], "status": r["status"]} for r in results],
+    })
+    with open(HISTORY_PATH, "w") as f:
+        json.dump(history, f, separators=(",", ":"))
 
 def load_config() -> dict:
     try:
@@ -362,10 +381,17 @@ async def get_uptime():
         return {"services": [], "checked_at": datetime.now().isoformat()}
 
     results = await asyncio.gather(*[_check_service(c) for c in checks])
+    _save_uptime_history(list(results))
     return {
         "services":   list(results),
         "checked_at": datetime.now().isoformat(),
     }
+
+
+@app.get("/api/uptime/history")
+async def get_uptime_history():
+    """Return raw uptime check history for the last 7 days."""
+    return {"history": _load_uptime_history()}
 
 
 @app.get("/api/weather")

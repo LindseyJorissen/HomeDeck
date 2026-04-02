@@ -36,6 +36,15 @@
   </script>
 </head>
 <body>
+  <div id="server-down-overlay" style="display:none;position:fixed;inset:0;z-index:9999;background:#c0392b;flex-direction:column;align-items:center;justify-content:center;gap:24px;animation:pulse-bg 1.5s ease-in-out infinite">
+    <div style="font-size:5rem;font-weight:900;color:#fff;letter-spacing:0.08em;text-shadow:0 4px 24px rgba(0,0,0,0.4)">SERVER DOWN</div>
+    <div style="font-size:1.1rem;color:rgba(255,255,255,0.75);letter-spacing:0.1em;text-transform:uppercase" id="down-detail"></div>
+    <button onclick="document.getElementById('server-down-overlay').style.display='none'" style="margin-top:16px;padding:10px 28px;border:2px solid rgba(255,255,255,0.5);border-radius:8px;background:transparent;color:#fff;font-size:0.95rem;cursor:pointer;letter-spacing:0.05em">Dismiss</button>
+  </div>
+  <style>
+    @keyframes pulse-bg { 0%,100%{background:#c0392b} 50%{background:#e74c3c} }
+  </style>
+
   <div class="flex flex-col h-screen overflow-hidden">
 
     <header class="flex items-center px-6 py-[14px] bg-surface border-b border-border shadow-app gap-[14px] flex-shrink-0 z-10">
@@ -76,6 +85,15 @@
 
       <div class="text-[0.75rem] text-muted text-center mt-3 pb-2" id="last-updated"></div>
 
+      <div id="history-section" style="display:none" class="mt-6">
+        <div class="text-[0.77rem] font-bold uppercase tracking-[0.8px] text-muted mb-3">7-Day History</div>
+        <div id="history-chart"></div>
+        <div class="flex justify-between text-[0.68rem] text-muted mt-1.5">
+          <span>7 days ago</span>
+          <span>Now</span>
+        </div>
+      </div>
+
     </div>
   </div>
 
@@ -111,6 +129,14 @@
       document.getElementById('count-up').textContent    = up;
       document.getElementById('count-down').textContent  = down;
       document.getElementById('count-total').textContent = services.length;
+
+      const overlay = document.getElementById('server-down-overlay');
+      if (services.length > 0 && up === 0) {
+        document.getElementById('down-detail').textContent = `All ${services.length} service${services.length > 1 ? 's' : ''} offline`;
+        overlay.style.display = 'flex';
+      } else {
+        overlay.style.display = 'none';
+      }
 
       if (services.length === 0) {
         list.innerHTML = `
@@ -150,8 +176,73 @@
       setLastUpdated('last-updated', new Date());
     }
 
+    async function loadHistory() {
+      const data = await fetchAPI('/api/uptime/history');
+      if (!data || !data.history || data.history.length === 0) return;
+
+      const BUCKETS   = 168; // 7 days × 24 h
+      const BUCKET_MS = 3_600_000;
+      const now       = Date.now();
+
+      // Collect all service names in order of first appearance
+      const names = [];
+      const seen  = new Set();
+      for (const entry of data.history) {
+        for (const r of entry.results) {
+          if (!seen.has(r.name)) { names.push(r.name); seen.add(r.name); }
+        }
+      }
+
+      // Build bucket arrays per service: null | 'up' | 'down'
+      const buckets = {};
+      for (const n of names) buckets[n] = new Array(BUCKETS).fill(null);
+
+      for (const entry of data.history) {
+        const age = now - new Date(entry.ts).getTime();
+        if (age > BUCKETS * BUCKET_MS) continue;
+        const idx = Math.floor((BUCKETS * BUCKET_MS - age) / BUCKET_MS);
+        if (idx < 0 || idx >= BUCKETS) continue;
+        for (const r of entry.results) {
+          if (!buckets[r.name]) continue;
+          const cur = buckets[r.name][idx];
+          if (cur === null || (cur === 'up' && r.status === 'down'))
+            buckets[r.name][idx] = r.status === 'up' ? 'up' : 'down';
+        }
+      }
+
+      const chart = document.getElementById('history-chart');
+      chart.innerHTML = names.map(name => {
+        const segs = buckets[name].map((s, i) => {
+          const bg  = s === 'up' ? '#34A853' : s === 'down' ? '#EA4335' : 'var(--border)';
+          const ts  = new Date(now - (BUCKETS - i - 1) * BUCKET_MS);
+          const tip = ts.toLocaleString([], {month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+          const status = s ?? 'no data';
+          return `<div style="flex:1;background:${bg};height:100%" title="${tip} — ${status}"></div>`;
+        }).join('');
+
+        const upCount   = buckets[name].filter(s => s === 'up').length;
+        const downCount = buckets[name].filter(s => s === 'down').length;
+        const dataCount = upCount + downCount;
+        const pct       = dataCount > 0 ? Math.round(upCount / dataCount * 100) : 100;
+        const pctColor  = pct === 100 ? 'var(--success)' : pct >= 90 ? 'var(--warning)' : 'var(--error)';
+
+        return `
+          <div class="mb-4">
+            <div class="flex justify-between items-center mb-1.5">
+              <span class="text-[0.82rem] font-semibold text-text">${name}</span>
+              <span class="text-[0.78rem] font-bold" style="color:${pctColor}">${pct}% uptime</span>
+            </div>
+            <div style="display:flex;height:18px;border-radius:4px;overflow:hidden;gap:1px">${segs}</div>
+          </div>`;
+      }).join('');
+
+      document.getElementById('history-section').style.display = 'block';
+    }
+
     refresh();
+    loadHistory();
     setInterval(refresh, 60_000);
+    setInterval(loadHistory, 300_000); // refresh history every 5 min
   </script>
 </body>
 </html>
