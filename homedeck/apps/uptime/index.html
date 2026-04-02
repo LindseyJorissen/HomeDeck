@@ -73,7 +73,10 @@
         </div>
       </div>
 
-      <div class="text-[0.77rem] font-bold uppercase tracking-[0.8px] text-muted mb-3">Services</div>
+      <div class="flex items-center mb-3">
+        <span class="text-[0.77rem] font-bold uppercase tracking-[0.8px] text-muted" style="width:45%">Service</span>
+        <span class="text-[0.77rem] font-bold uppercase tracking-[0.8px] text-muted" style="flex:1;padding-left:20px">7-Day History</span>
+      </div>
       <div id="services-list">
         <div class="text-center py-[52px] px-6 text-muted">
           <div class="text-[3rem] mb-[14px]" style="animation:pulse 1s infinite">
@@ -84,15 +87,6 @@
       </div>
 
       <div class="text-[0.75rem] text-muted text-center mt-3 pb-2" id="last-updated"></div>
-
-      <div id="history-section" style="display:none" class="mt-6">
-        <div class="text-[0.77rem] font-bold uppercase tracking-[0.8px] text-muted mb-3">7-Day History</div>
-        <div id="history-chart"></div>
-        <div class="flex justify-between text-[0.68rem] text-muted mt-1.5">
-          <span>7 days ago</span>
-          <span>Now</span>
-        </div>
-      </div>
 
     </div>
   </div>
@@ -154,17 +148,24 @@
         const msClass = ms == null ? '' : ms > 1000 ? 'bad' : ms > 500 ? 'slow' : '';
         const msText  = ms != null ? `${ms} ms` : '–';
         const errText = s.error ? ` · ${s.error}` : '';
+        const histId  = 'hist-' + s.name.replace(/[^a-zA-Z0-9]/g, '_');
 
         return `
-          <div class="bg-surface rounded-sm px-[18px] py-[13px] mb-2.5 shadow-card flex items-center gap-3 border border-border slide-up"
-               style="animation-delay:${i * 0.05}s">
-            <div class="flex-1 min-w-0">
-              <div class="text-[1rem] font-semibold whitespace-nowrap overflow-hidden text-ellipsis">${s.name}</div>
-              <div class="text-[0.78rem] text-muted mt-0.5 whitespace-nowrap overflow-hidden text-ellipsis">${s.url}${errText}</div>
+          <div class="bg-surface rounded-sm px-[18px] py-[13px] mb-2.5 shadow-card flex items-center border border-border slide-up"
+               style="animation-delay:${i * 0.05}s;gap:0">
+            <div style="width:45%;min-width:0;flex-shrink:0">
+              <div class="flex items-center gap-2">
+                <span class="text-[1rem] font-semibold whitespace-nowrap overflow-hidden text-ellipsis">${s.name}</span>
+                <span class="badge badge--${isUp ? 'up' : 'down'}" style="flex-shrink:0">${isUp ? '● UP' : '● DOWN'}</span>
+              </div>
+              <div class="text-[0.75rem] text-muted mt-0.5 whitespace-nowrap overflow-hidden text-ellipsis">
+                <span class="response-time ${msClass}">${msText}</span> · ${s.url}${errText}
+              </div>
             </div>
-            <div class="text-right flex-shrink-0 flex items-center gap-3">
-              <div class="response-time text-[0.9rem] font-bold text-text ${msClass}">${msText}</div>
-              <span class="badge badge--${isUp ? 'up' : 'down'}">${isUp ? '● UP' : '● DOWN'}</span>
+            <div style="width:1px;height:36px;background:var(--border);flex-shrink:0;margin:0 16px"></div>
+            <div style="flex:1;min-width:0" id="${histId}">
+              <div style="height:16px;border-radius:3px;background:var(--border);opacity:0.35"></div>
+              <div class="flex justify-between text-[0.62rem] text-muted mt-1"><span>7d ago</span><span>now</span></div>
             </div>
           </div>`;
       }).join('');
@@ -176,20 +177,16 @@
       const data = await fetchAPI('/api/uptime/history');
       if (!data || !data.history || data.history.length === 0) return;
 
-      const BUCKETS   = 168; // 7 days × 24 h
+      const BUCKETS   = 168;
       const BUCKET_MS = 3_600_000;
       const now       = Date.now();
 
-      // Collect all service names in order of first appearance
       const names = [];
       const seen  = new Set();
-      for (const entry of data.history) {
-        for (const r of entry.results) {
+      for (const entry of data.history)
+        for (const r of entry.results)
           if (!seen.has(r.name)) { names.push(r.name); seen.add(r.name); }
-        }
-      }
 
-      // Build bucket arrays per service: null | 'up' | 'down'
       const buckets = {};
       for (const n of names) buckets[n] = new Array(BUCKETS).fill(null);
 
@@ -206,39 +203,35 @@
         }
       }
 
-      const chart = document.getElementById('history-chart');
-      chart.innerHTML = names.map(name => {
+      for (const name of names) {
+        const slot = document.getElementById('hist-' + name.replace(/[^a-zA-Z0-9]/g, '_'));
+        if (!slot) continue;
+
+        const upCount   = buckets[name].filter(s => s === 'up').length;
+        const dataCount = upCount + buckets[name].filter(s => s === 'down').length;
+        const pct       = dataCount > 0 ? Math.round(upCount / dataCount * 100) : 100;
+        const pctColor  = pct === 100 ? 'var(--success)' : pct >= 90 ? 'var(--warning)' : 'var(--error)';
+
         const segs = buckets[name].map((s, i) => {
           const bg  = s === 'up' ? '#34A853' : s === 'down' ? '#EA4335' : 'var(--border)';
           const ts  = new Date(now - (BUCKETS - i - 1) * BUCKET_MS);
           const tip = ts.toLocaleString([], {month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
-          const status = s ?? 'no data';
-          return `<div style="flex:1;background:${bg};height:100%" title="${tip} — ${status}"></div>`;
+          return `<div style="flex:1;background:${bg};height:100%" title="${tip} — ${s ?? 'no data'}"></div>`;
         }).join('');
 
-        const upCount   = buckets[name].filter(s => s === 'up').length;
-        const downCount = buckets[name].filter(s => s === 'down').length;
-        const dataCount = upCount + downCount;
-        const pct       = dataCount > 0 ? Math.round(upCount / dataCount * 100) : 100;
-        const pctColor  = pct === 100 ? 'var(--success)' : pct >= 90 ? 'var(--warning)' : 'var(--error)';
-
-        return `
-          <div class="mb-4">
-            <div class="flex justify-between items-center mb-1.5">
-              <span class="text-[0.82rem] font-semibold text-text">${name}</span>
-              <span class="text-[0.78rem] font-bold" style="color:${pctColor}">${pct}% uptime</span>
-            </div>
-            <div style="display:flex;height:18px;border-radius:4px;overflow:hidden;gap:1px">${segs}</div>
-          </div>`;
-      }).join('');
-
-      document.getElementById('history-section').style.display = 'block';
+        slot.innerHTML = `
+          <div class="flex justify-between items-center mb-1" style="font-size:0.7rem">
+            <span class="text-muted">7d ago</span>
+            <span style="font-weight:700;color:${pctColor}">${pct}%</span>
+            <span class="text-muted">now</span>
+          </div>
+          <div style="display:flex;height:16px;border-radius:3px;overflow:hidden;gap:1px">${segs}</div>`;
+      }
     }
 
-    refresh();
-    loadHistory();
+    refresh().then(() => loadHistory());
     setInterval(refresh, 60_000);
-    setInterval(loadHistory, 300_000); // refresh history every 5 min
+    setInterval(loadHistory, 300_000);
   </script>
 </body>
 </html>
