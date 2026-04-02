@@ -55,7 +55,6 @@ async function refreshWeather() {
   const iconEl  = document.getElementById('weather-icon');
   const locEl   = document.getElementById('weather-loc');
   const locText = document.getElementById('weather-loc-text');
-  const card    = document.getElementById('card-weather');
 
   if (!data || data.error) {
     if (tempEl) tempEl.textContent = '--°';
@@ -77,7 +76,6 @@ async function refreshUptime() {
   const valueEl = document.getElementById('uptime-value');
   const subEl   = document.getElementById('uptime-sub');
   const iconEl  = document.getElementById('uptime-status-icon');
-  const card    = document.getElementById('card-uptime');
 
   if (!data) {
     if (valueEl) valueEl.textContent = 'Error';
@@ -106,6 +104,71 @@ async function refreshUptime() {
       overlay.style.display = 'flex';
     } else {
       overlay.style.display = 'none';
+    }
+  }
+
+  // Big-mode: fetch 24h history and render service rows
+  const card = document.getElementById('card-uptime');
+  if (card && card.dataset.cardSize === 'big') {
+    const servicesBig = document.getElementById('uptime-services-big');
+    const pctEl       = document.getElementById('uptime-24h-pct');
+    const histData    = await fetchAPI('/api/uptime/history');
+
+    if (histData && histData.history) {
+      const BUCKETS   = 24;
+      const BUCKET_MS = 3_600_000;
+      const now       = Date.now();
+
+      const names = services.map(s => s.name);
+      const buckets = {};
+      for (const n of names) buckets[n] = new Array(BUCKETS).fill(null);
+
+      for (const entry of histData.history) {
+        const age = now - new Date(entry.ts).getTime();
+        if (age > BUCKETS * BUCKET_MS) continue;
+        const idx = Math.floor((BUCKETS * BUCKET_MS - age) / BUCKET_MS);
+        if (idx < 0 || idx >= BUCKETS) continue;
+        for (const r of entry.results) {
+          if (!buckets[r.name]) continue;
+          const cur = buckets[r.name][idx];
+          if (cur === null || (cur === 'up' && r.status === 'down'))
+            buckets[r.name][idx] = r.status === 'up' ? 'up' : 'down';
+        }
+      }
+
+      // Overall 24h uptime %
+      let totalB = 0, upB = 0;
+      for (const n of names) {
+        for (const b of buckets[n]) {
+          if (b !== null) { totalB++; if (b === 'up') upB++; }
+        }
+      }
+      const overall = totalB > 0 ? Math.round(upB / totalB * 100) : 100;
+      const overallColor = overall === 100 ? 'var(--success)' : overall >= 90 ? 'var(--warning)' : 'var(--error)';
+      if (pctEl) { pctEl.textContent = `${overall}%`; pctEl.style.color = overallColor; }
+
+      // Per-service rows with 24h history bars
+      if (servicesBig) {
+        servicesBig.innerHTML = services.map(s => {
+          const isUp = s.status === 'up';
+          const perB = buckets[s.name] || new Array(BUCKETS).fill(null);
+          const upC  = perB.filter(b => b === 'up').length;
+          const datC = upC + perB.filter(b => b === 'down').length;
+          const pct  = datC > 0 ? Math.round(upC / datC * 100) : 100;
+          const col  = pct === 100 ? 'var(--success)' : pct >= 90 ? 'var(--warning)' : 'var(--error)';
+          const dot  = isUp ? 'var(--success)' : 'var(--error)';
+          const bars = perB.map(b => {
+            const bg = b === 'up' ? 'var(--success)' : b === 'down' ? 'var(--error)' : 'var(--border)';
+            return `<div style="flex:1;background:${bg};height:100%;border-radius:1px"></div>`;
+          }).join('');
+          return `<div style="display:flex;align-items:center;gap:8px;min-width:0">
+            <div style="width:7px;height:7px;border-radius:50%;background:${dot};flex-shrink:0"></div>
+            <span style="font-size:0.78rem;font-weight:600;color:var(--text);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">${s.name}</span>
+            <div style="display:flex;gap:1px;height:10px;width:72px;flex-shrink:0">${bars}</div>
+            <span style="font-size:0.72rem;font-weight:700;color:${col};width:32px;text-align:right;flex-shrink:0">${pct}%</span>
+          </div>`;
+        }).join('');
+      }
     }
   }
 }
@@ -151,7 +214,6 @@ async function refreshHA() {
   const data     = await fetchAPI('/api/ha/status');
   const countEl  = document.getElementById('ha-scenes-count');
   const subEl    = document.getElementById('ha-sub');
-  const card     = document.getElementById('card-ha');
 
   if (!data) return;
 
@@ -220,6 +282,7 @@ function applyCardLayout() {
     el.className = el.className.replace(/\bflex-\[\d+\]\b|\bflex-1\b/g, '').trim();
     el.classList.add(i === 0 ? 'flex-[3]' : 'flex-[2]');
     el.style.display = '';
+    el.dataset.cardSize = 'big';
     rowTop.appendChild(el);
   });
 
@@ -230,8 +293,37 @@ function applyCardLayout() {
     el.className = el.className.replace(/\bflex-\[\d+\]\b|\bflex-1\b/g, '').trim();
     el.classList.add('flex-1');
     el.style.display = stored[id] !== false ? '' : 'none';
+    el.dataset.cardSize = 'small';
     rowBottom.appendChild(el);
   });
+
+  updateCardSizes();
+}
+
+function updateCardSizes() {
+  // Uptime card: switch between compact (small) and detail (big) layout
+  const uptimeCard = document.getElementById('card-uptime');
+  if (uptimeCard) {
+    const isBig      = uptimeCard.dataset.cardSize === 'big';
+    const countRow   = document.getElementById('uptime-count-row');
+    const servicesBig = document.getElementById('uptime-services-big');
+    const pctLabel   = document.getElementById('uptime-24h-label');
+
+    if (countRow) {
+      countRow.className = countRow.className.replace(/\bflex-1\b|\bflex-shrink-0\b/g, '').trim();
+      countRow.classList.add(isBig ? 'flex-shrink-0' : 'flex-1');
+    }
+    if (servicesBig) servicesBig.style.display = isBig ? '' : 'none';
+    if (pctLabel)    pctLabel.style.display    = isBig ? '' : 'none';
+  }
+
+  // System card: hide TEMP row when small to reduce clutter
+  const serverCard = document.getElementById('card-server');
+  if (serverCard) {
+    const isBig    = serverCard.dataset.cardSize === 'big';
+    const tempRow  = document.getElementById('sys-temp-row');
+    if (tempRow) tempRow.style.display = isBig ? '' : 'none';
+  }
 }
 
 applyCardLayout();

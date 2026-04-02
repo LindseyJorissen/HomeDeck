@@ -125,7 +125,7 @@
               <div id="sys-ram-bar" class="h-full rounded-full bg-primary transition-[width] duration-700" style="width:0%"></div>
             </div>
           </div>
-          <div class="flex items-center gap-2">
+          <div class="flex items-center gap-2" id="sys-temp-row">
             <img src="assets/icons/thermometer.svg" width="14" height="14" alt="" class="flex-shrink-0 opacity-50" />
             <span class="text-[0.72rem] font-bold text-muted uppercase w-8">TEMP</span>
             <span class="text-[0.82rem] font-bold text-text w-11 text-right" id="sys-temp-val">--°C</span>
@@ -138,11 +138,15 @@
 
       <div class="card bg-surface rounded-card shadow-card border border-transparent hover:-translate-y-[3px] hover:shadow-hover hover:border-border active:scale-[0.97] transition-[transform,box-shadow,border-color] duration-[180ms] cursor-pointer p-5 flex flex-col min-w-0"
            id="card-uptime" onclick="openApp('uptime')">
-        <div class="text-[0.72rem] font-bold text-muted uppercase tracking-[0.7px]">Uptime Monitor</div>
-        <div class="flex-1 flex items-center gap-3 min-h-0">
+        <div class="flex justify-between items-center flex-shrink-0">
+          <div class="text-[0.72rem] font-bold text-muted uppercase tracking-[0.7px]">Uptime Monitor</div>
+          <div id="uptime-24h-label" style="display:none" class="text-[0.72rem] font-bold uppercase tracking-[0.7px]"><span id="uptime-24h-pct" class="text-text">--%</span><span class="text-muted"> 24h</span></div>
+        </div>
+        <div class="flex-1 flex items-center gap-3 min-h-0" id="uptime-count-row">
           <img id="uptime-status-icon" src="assets/icons/check_mark.svg" width="28" height="28" alt="" class="flex-shrink-0 opacity-70" />
           <div class="text-[1.9rem] font-bold text-text leading-none" id="uptime-value">-- / --</div>
         </div>
+        <div class="flex-1 flex flex-col gap-[5px] min-h-0 overflow-hidden" id="uptime-services-big" style="display:none"></div>
         <div class="text-[0.82rem] text-muted flex-shrink-0" id="uptime-sub">Services Online</div>
       </div>
 
