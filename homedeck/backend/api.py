@@ -65,7 +65,7 @@ def _load_uptime_history() -> list:
 
 def _save_uptime_history(results: list) -> None:
     history = _load_uptime_history()
-    cutoff  = datetime.now().timestamp() - 7 * 86400
+    cutoff  = datetime.now().timestamp() - 3 * 86400
     history = [e for e in history if datetime.fromisoformat(e["ts"]).timestamp() > cutoff]
     history.append({
         "ts":      datetime.now().isoformat(),

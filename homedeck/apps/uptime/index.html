@@ -165,7 +165,7 @@
             <div style="width:1px;height:36px;background:var(--border);flex-shrink:0;margin:0 16px"></div>
             <div style="flex:1;min-width:0" id="${histId}">
               <div style="height:16px;border-radius:3px;background:var(--border);opacity:0.35"></div>
-              <div class="flex justify-between text-[0.62rem] text-muted mt-1"><span>7d ago</span><span>now</span></div>
+              <div class="flex justify-between text-[0.62rem] text-muted mt-1"><span>3d ago</span><span>now</span></div>
             </div>
           </div>`;
       }).join('');
@@ -177,7 +177,7 @@
       const data = await fetchAPI('/api/uptime/history');
       if (!data || !data.history || data.history.length === 0) return;
 
-      const BUCKETS   = 168;
+      const BUCKETS   = 72; // 3 days × 24 h
       const BUCKET_MS = 3_600_000;
       const now       = Date.now();
 
@@ -221,7 +221,7 @@
 
         slot.innerHTML = `
           <div class="flex justify-between items-center mb-1" style="font-size:0.7rem">
-            <span class="text-muted">7d ago</span>
+            <span class="text-muted">3d ago</span>
             <span style="font-weight:700;color:${pctColor}">${pct}%</span>
             <span class="text-muted">now</span>
           </div>
