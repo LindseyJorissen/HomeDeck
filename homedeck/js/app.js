@@ -309,10 +309,13 @@ function updateCardSizes() {
     const servicesBig = document.getElementById('uptime-services-big');
     const pctLabel   = document.getElementById('uptime-24h-label');
 
+    const statusIcon = document.getElementById('uptime-status-icon');
+
     if (countRow) {
       countRow.className = countRow.className.replace(/\bflex-1\b|\bflex-shrink-0\b/g, '').trim();
       countRow.classList.add(isBig ? 'flex-shrink-0' : 'flex-1');
     }
+    if (statusIcon)  statusIcon.style.display  = isBig ? 'none' : '';
     if (servicesBig) servicesBig.style.display = isBig ? '' : 'none';
     if (pctLabel)    pctLabel.style.display    = isBig ? '' : 'none';
   }
