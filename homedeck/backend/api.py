@@ -125,42 +125,136 @@ def _get_local_subnet() -> str:
     return "192.168.1.0/24"
 
 
+def _get_wifi_interface() -> str:
+    """Detect the wireless interface name dynamically."""
+    try:
+        r = subprocess.run(["iw", "dev"], capture_output=True, text=True, timeout=3)
+        for line in r.stdout.splitlines():
+            stripped = line.strip()
+            if stripped.startswith("Interface "):
+                return stripped.split()[-1]
+    except Exception:
+        pass
+    try:
+        for name in os.listdir("/sys/class/net"):
+            if name.startswith(("wlan", "wlp", "wl")):
+                return name
+    except Exception:
+        pass
+    return "wlan0"
+
+
+def _load_dhcp_leases() -> dict:
+    """Load DHCP lease hostnames from dnsmasq or dhcpd. Returns {ip: hostname}."""
+    leases: dict = {}
+    lease_files = [
+        "/var/lib/misc/dnsmasq.leases",
+        "/tmp/dnsmasq.leases",
+        "/var/lib/dhcpcd5/dhcpcd.leases",
+    ]
+    for path in lease_files:
+        try:
+            with open(path) as f:
+                for line in f:
+                    parts = line.split()
+                    # dnsmasq format: expiry mac ip hostname client-id
+                    if len(parts) >= 4:
+                        ip = parts[2]
+                        hostname = parts[3]
+                        if hostname != "*" and hostname != "":
+                            leases[ip] = hostname
+        except Exception:
+            pass
+    return leases
+
+
+def _resolve_hostname(ip: str) -> Optional[str]:
+    """Try reverse DNS lookup for an IP address."""
+    try:
+        name = socket.gethostbyaddr(ip)[0]
+        # Skip generic PTR records that are just the IP reversed
+        if not re.match(r'^(\d+\.){3}\d+$', name):
+            return name
+    except Exception:
+        pass
+    return None
+
+
 def _list_network_devices() -> list:
     """Discover devices on the local network.
-    Tries nmap -sn first, falls back to ip neigh show, then /proc/net/arp."""
+    Tries arp-scan first, then nmap -sn, then ip neigh show, then /proc/net/arp.
+    Enriches results with hostnames from dnsmasq leases and reverse DNS."""
     devices = []
+    dhcp_leases = _load_dhcp_leases()
 
-    # 1. nmap ping-scan of the whole subnet (most complete)
+    def enrich(dev: dict) -> dict:
+        """Add hostname to a device dict if not already set."""
+        ip = dev.get("ip")
+        if not dev.get("hostname") and ip:
+            dev["hostname"] = dhcp_leases.get(ip) or _resolve_hostname(ip)
+        return dev
+
+    # 1. arp-scan — most reliable full-subnet ARP sweep (needs root or cap_net_raw)
+    try:
+        r = subprocess.run(
+            ["arp-scan", "--localnet", "--ignoredups"],
+            capture_output=True, text=True, timeout=20,
+        )
+        if r.returncode == 0:
+            for line in r.stdout.splitlines():
+                m = re.match(r'(\d+\.\d+\.\d+\.\d+)\s+([0-9a-fA-F:]{17})\s*(.*)', line)
+                if m:
+                    devices.append(enrich({
+                        "ip": m.group(1),
+                        "mac": m.group(2).lower(),
+                        "state": "up",
+                        "hostname": m.group(3).strip() or None,
+                    }))
+            if devices:
+                return devices
+    except (FileNotFoundError, Exception):
+        pass
+
+    # 2. nmap ping-scan of the whole subnet
     try:
         subnet = _get_local_subnet()
         r = subprocess.run(
-            ["nmap", "-sn", "-T4", "--host-timeout", "3s", subnet],
-            capture_output=True, text=True, timeout=15,
+            ["nmap", "-sn", "-T4", "--host-timeout", "5s", subnet],
+            capture_output=True, text=True, timeout=30,
         )
         if r.returncode == 0 and "Nmap scan report" in r.stdout:
             current_ip = None
             current_mac = None
+            current_hostname = None
             for line in r.stdout.splitlines():
                 if line.startswith("Nmap scan report for"):
                     if current_ip:
-                        devices.append({"ip": current_ip, "mac": current_mac, "state": "up"})
-                    m = re.search(r'\((\d+\.\d+\.\d+\.\d+)\)', line)
-                    current_ip = m.group(1) if m else re.search(r'(\d+\.\d+\.\d+\.\d+)$', line)
-                    if not isinstance(current_ip, str):
-                        current_ip = current_ip.group(1) if current_ip else None
+                        devices.append(enrich({"ip": current_ip, "mac": current_mac, "state": "up", "hostname": current_hostname}))
+                    # "Nmap scan report for hostname (1.2.3.4)" or "Nmap scan report for 1.2.3.4"
+                    m_host = re.search(r'for (.+?) \((\d+\.\d+\.\d+\.\d+)\)', line)
+                    m_ip = re.search(r'for (\d+\.\d+\.\d+\.\d+)$', line)
+                    if m_host:
+                        current_hostname = m_host.group(1)
+                        current_ip = m_host.group(2)
+                    elif m_ip:
+                        current_hostname = None
+                        current_ip = m_ip.group(1)
+                    else:
+                        current_hostname = None
+                        current_ip = None
                     current_mac = None
                 elif line.startswith("MAC Address:") and current_ip:
                     m = re.match(r'MAC Address: ([0-9A-Fa-f:]{17})', line)
                     if m:
                         current_mac = m.group(1).lower()
             if current_ip:
-                devices.append({"ip": current_ip, "mac": current_mac, "state": "up"})
+                devices.append(enrich({"ip": current_ip, "mac": current_mac, "state": "up", "hostname": current_hostname}))
             if devices:
                 return devices
     except (FileNotFoundError, Exception):
         pass
 
-    # 2. ip neigh show — always available, richer than /proc/net/arp
+    # 3. ip neigh show — always available, richer than /proc/net/arp
     try:
         r = subprocess.run(["ip", "neigh", "show"], capture_output=True, text=True, timeout=5)
         seen: set = set()
@@ -176,25 +270,26 @@ def _list_network_devices() -> list:
                 continue
             iface = parts[parts.index("dev") + 1] if "dev" in parts else None
             state = parts[-1] if parts[-1] in ("REACHABLE", "STALE", "DELAY", "PROBE", "PERMANENT") else None
-            devices.append({"ip": ip, "mac": parts[mac_idx], "interface": iface, "state": state})
+            devices.append(enrich({"ip": ip, "mac": parts[mac_idx], "interface": iface, "state": state, "hostname": None}))
             seen.add(ip)
         if devices:
             return devices
     except Exception:
         pass
 
-    # 3. /proc/net/arp fallback
+    # 4. /proc/net/arp fallback
     try:
         with open("/proc/net/arp") as f:
             for line in f.readlines()[1:]:
                 parts = line.split()
                 if len(parts) >= 4 and parts[2] != "0x0":
-                    devices.append({
+                    devices.append(enrich({
                         "ip": parts[0],
                         "mac": parts[3],
                         "interface": parts[5] if len(parts) > 5 else None,
                         "state": None,
-                    })
+                        "hostname": None,
+                    }))
     except Exception:
         pass
 
@@ -205,26 +300,33 @@ def _get_wifi_info() -> dict:
     """Get WiFi SSID and signal with multiple fallbacks (Pi/Linux only)."""
     ssid = None
     signal_dbm = None
+    iface = _get_wifi_interface()
 
     # 1. nmcli — default on modern Pi OS (NetworkManager)
     try:
         r = subprocess.run(
-            ["nmcli", "-t", "-f", "ACTIVE,SSID,SIGNAL", "dev", "wifi"],
+            ["nmcli", "-t", "-e", "yes", "-f", "ACTIVE,SSID,SIGNAL", "dev", "wifi"],
             capture_output=True, text=True, timeout=3,
         )
         for line in r.stdout.splitlines():
             if line.startswith("yes:"):
-                parts = line.split(":", 3)
-                ssid = parts[1] or None
-                if len(parts) >= 3 and parts[2].isdigit():
-                    signal_dbm = int(int(parts[2]) / 2) - 100
+                # Split from right: last field is signal (numeric), middle is SSID (may contain colons)
+                parts = line.split(":")
+                if parts and parts[-1].isdigit():
+                    signal_pct = int(parts[-1])
+                    signal_dbm = int(signal_pct / 2) - 100
+                    # SSID is everything between "yes:" and the last ":signal"
+                    ssid = ":".join(parts[1:-1]).replace("\\:", ":") or None
+                else:
+                    # No signal field — just grab SSID
+                    ssid = ":".join(parts[1:]).replace("\\:", ":") or None
                 break
     except Exception:
         pass
 
-    # 2. iw dev wlan0 link — gives actual dBm and SSID
+    # 2. iw dev <iface> link — gives actual dBm and SSID
     try:
-        r = subprocess.run(["iw", "dev", "wlan0", "link"], capture_output=True, text=True, timeout=3)
+        r = subprocess.run(["iw", "dev", iface, "link"], capture_output=True, text=True, timeout=3)
         if not ssid:
             m = re.search(r'SSID:\s*(.+)', r.stdout)
             if m:
@@ -248,7 +350,7 @@ def _get_wifi_info() -> dict:
     # 4. iwconfig — last resort
     if not ssid or signal_dbm is None:
         try:
-            r = subprocess.run(["iwconfig", "wlan0"], capture_output=True, text=True, timeout=3)
+            r = subprocess.run(["iwconfig", iface], capture_output=True, text=True, timeout=3)
             if not ssid:
                 m = re.search(r'ESSID:"([^"]+)"', r.stdout)
                 if m:

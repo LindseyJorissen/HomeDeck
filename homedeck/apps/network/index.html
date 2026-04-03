@@ -177,13 +177,15 @@
       const listEl = document.getElementById('devices-list');
       const devices = data.devices || [];
       if (!devices.length) {
-        listEl.innerHTML = '<div class="text-[0.85rem] text-muted">No devices found — try installing nmap for full scan</div>';
+        listEl.innerHTML = '<div class="text-[0.85rem] text-muted">No devices found — try installing arp-scan or nmap</div>';
       } else {
         const staleColor = { REACHABLE: 'var(--success)', STALE: 'var(--text-secondary)', DELAY: 'var(--warning)', PROBE: 'var(--warning)' };
         listEl.innerHTML = devices.map((d, i) => {
-          const stateColor = staleColor[d.state] || 'var(--text-secondary)';
-          const stateDot = d.state ? `<span style="width:8px;height:8px;border-radius:50%;background:${stateColor};flex-shrink:0;display:inline-block"></span>` : '';
-          const macLine = d.mac ? `<div class="text-[0.75rem] text-muted font-mono">${d.mac}</div>` : '';
+          const stateColor = staleColor[d.state] || 'var(--success)';
+          const stateDot = `<span style="width:8px;height:8px;border-radius:50%;background:${stateColor};flex-shrink:0;display:inline-block"></span>`;
+          const label = d.hostname || d.ip;
+          const sublabel = d.hostname ? d.ip : (d.mac || '');
+          const subLine = sublabel ? `<div class="text-[0.75rem] text-muted font-mono">${sublabel}</div>` : '';
           const badge = d.interface ? `<div class="text-[0.72rem] font-bold text-muted uppercase bg-bg border border-border rounded-xs px-2 py-0.5 flex-shrink-0">${d.interface}</div>` : '';
           return `
             <div class="bg-surface rounded-sm px-4 py-3 shadow-card border border-border flex items-center justify-between gap-4 slide-up mb-2"
@@ -191,8 +193,8 @@
               <div class="flex items-center gap-2 min-w-0">
                 ${stateDot}
                 <div class="flex flex-col gap-0.5 min-w-0">
-                  <div class="text-[0.95rem] font-semibold text-text truncate">${d.ip}</div>
-                  ${macLine}
+                  <div class="text-[0.95rem] font-semibold text-text truncate">${label}</div>
+                  ${subLine}
                 </div>
               </div>
               ${badge}
